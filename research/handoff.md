@@ -1,51 +1,110 @@
 # 交接：Orca 內外網非同步通訊研究
 
-交接日期：2026-10-30  
-狀態：研究與設計草案；尚未實作或在公司環境驗證。面向後續在公司環境工作的 agent 與工程師。
+交接版本：3.1｜2026-10-30  
+狀態：研究、設計與驗收規格已整理；尚未實作 adapter 或在公司環境驗證。面向公司 Agent 與工程師。現行主設計為 [3.1 草案](orca-cross-network-mail-design.md)。
 
-## 從這裡開始
+## 1. 從哪些文件開始讀
 
-1. 閱讀 [Orca 原生架構](orca-native-architecture.md)：先了解 Orca 現有的 Run、Task、Dispatch、mailbox、遠端機制、sequence 與 ACK，以及圖解和版本限制。
-2. 閱讀 [跨網通訊設計書](orca-cross-network-mail-design.md)：掌握使用者的目標、FTP／`itcp` 方向、polling、`seq`、`retry`、狀態未知與實測清單。此文件是目前方案的主要依據。
-3. 需要研究過去的異常案例或設計取捨時，查閱 [可靠投遞歷史研究](orca-bridge-reliability-design.md) 和 [早期橋接研究](orca-network-bridge-research.md)。兩份都是歷史稿，包含使用者後來沒有選定或已修改的內容，不可當成現行實作要求。
-4. 調查與修改程式碼前，先讀 repo 自身的 `AGENTS.md`／適用的本地規範及公司 Orca 版本的內建 CLI／skill 說明；將實際 Orca 版本、commit 和本研究基準的差異記錄下來。
+| 順序 | 文件 | 內容與用途 |
+| --- | --- | --- |
+| 1 | [Orca 原生架構](orca-native-architecture.md) | 了解原有 Run／Task／Dispatch／mailbox、CLI／runtime、SSH／serve／federation、sequence／ACK；含原生 ARCH、flowchart、sequence diagram 與版本限制 |
+| 2 | [內外網通訊主設計](orca-cross-network-mail-design.md) | 現行方案唯一主文件。讀 §2.2 接點表、§4 polling／順序／owner、§5 信封、§6 交接／receipt／ACK、§7 完整檔案、§8 恢復／保留；含跨網 Mermaid 圖 |
+| 3 | [Review 對照與故障驗收](orca-bridge-acceptance.md) | 逐項對照 review，列出 26 個 C／O／T 案例；每案有預期、證據來源與自動重試界線，現況全部 not_run |
+| 4 | [可靠投遞歷史研究](orca-bridge-reliability-design.md) | 過去較重的可靠性方案與取捨，僅供參考。不得採用其永久 seq 保存、固定重送 bytes、強制簽章等作為現行需求 |
+| 5 | [早期橋接研究](orca-network-bridge-research.md) | 早期通道與部署研究背景；遇到差異以主設計及使用者後續指示為準 |
 
-## 使用者已決定
+修改程式碼前另讀 repo 的 `AGENTS.md`、適用的本地規範、公司 Orca 版本的 CLI／內建 skill；保存版本與本研究基準的差異。歷史文件沒有優先於現行主設計的效力。
 
-- 儘量沿用 Orca 原有 agent、協作、權限、人工操作、顯示與 log，不預設重做一套 orchestration。需要新增的範圍是 FTP 發送、FTP 落地資料夾 polling、`itcp` 發送、網路芳鄰資料夾 polling，以及跨網訊息的 `seq` 和 `retry`。實際接入位置待原始碼研究與實測。
-- 外網 → 內網：FTP 傳入；內網 → 外網：執行 `itcp` 傳至指定資料夾，外網 Windows 從網路芳鄰讀取。`itcp` 實際語法、目的地及完成語意目前未知；在公司環境自行查詢並驗證，查不到再問使用者。
-- Polling 活動時約 1 秒、idle 時 5 秒，均可設定；idle 判斷門檻仍待驗證。設計應保持輕量。
-- 每個發送節點 → 接收節點方向各自有 `seq`，一般訊息和 receipt 都編號。接收端只檢查並記錄異常，照收到順序處理，不因缺號等待；重送沿用訊息 ID 和 `seq`，`retry` 遞增。
-- 使用者不希望另存 `seq`，重啟後希望與對端重新同步；同步來源、協議與無法同步時的處理須核對 Orca 實際能力。兩端沒有可核對紀錄時不能聲稱舊序號可恢復，應標記新區段及狀態未知。
-- 如果無法確定訊息是否收過或工作是否已執行，由人員決定是否重送；不可把狀態未知當成工作沒有執行。使用者允許 agent 修改程式碼、部署與操作正式環境，權限及確認照 Orca 原有機制和公司設定；人員也可繼續操作。
-- 安全方案希望簡單並符合公司規範；歷史文件的 Ed25519 設計不是已選定方案。內網結果用 `itcp` 傳回，實際規則、資料外送政策及認證方式在公司確認。
-- Linux 可能只能 SSH。優先驗證 Linux `orca serve` 加 Windows browser client；若不通，再驗證內網 Windows Orca 桌面版經 SSH 操作 Linux。browser 連線路徑、SSH forwarding 和功能可用性未實測。
+## 2. Who／What／How
 
-## 已確認的事實與重要差異
+| 角色 | 責任 |
+| --- | --- |
+| 使用者／公司負責人 | 決定需求、公司跨網與正式環境政策；unknown 且無證據時決定是否重新執行；確認只能由本人提供的 itcp 資料 |
+| 公司 Agent／工程師 | 勘查可用環境、核對原生接口、實作最薄適配、執行故障測試、記錄限制與證據；從已授權範圍持續推進，不因一般設計選擇重複請示 |
+| 外網主 Orca | 透過本地原生代理與多個已設定 peer 交換訊息，保留原生協作與人工操作 |
+| 各端本地接收代理 | 用合法本地身分處理跨網訊息，映射原生 Task／thread，遵守本地 Dispatch／權限；不偽造另一個 runtime 的 worker_done |
+| 檔案適配器 | 同一套程式、不同設定；FTP／itcp 發送、資料夾 polling、完整性、穩定 ID／epoch／seq／retry、交接查證及 receipt；不重做工作排程與權限系統 |
+| Reviewer | 依實際 source／diff／測試查核設計與實作；使用者先前要求可用時以 Sol xhigh subagent review，未實際執行不得宣稱完成或零意見 |
 
-- 研究時本機 Orca 為 1.4.244；官方 `v1.4.244` tag 指向 commit `b8ec5c8d170bcb9988e65de547a3a4e98b2885a9`。主架構文件連結此固定版本來源；公司版本可能不同。
-- Orca 本地 mailbox 的 `send` 成功表示訊息入列，不代表已讀或工作完成；`check` 的 ACK 是本地 delivery batch 確認，不等於跨網收件確認。原生 worker 完成受 Dispatch 身分與權限約束，不能在隔離 runtime 之間直接偽造 `worker_done`。
-- **Orca 原生 federation 內部已有 sequence 與 ACK**，且該版本 import 遇到不連續序號會拒絕。這與使用者選擇的跨網 `seq` 僅記 log、按到達順序處理不同。不可直接假設兩種 sequence 相同或相容；釐清適配層和原生 relay 的關係。
-- 已查資料未顯示 Orca 提供直接配置 FTP／`itcp` 的公開 transport，也未找到外部適配器寫 Orca 原生 log／GUI 的公開標準 API；這是有限查核結果，不是對完整原始碼的不存在證明。
-- `retry` 每次增加會改變 JSON bytes，不能沿用歷史稿的「整份 bytes 永遠相同」去重規則；固定訊息內容與傳輸計數如何分開或比較，須在實作前確定。不可默默把整份 JSON hash 不同視為不同工作。
+目標是讓公司隔離網段上的 Orca 在現有傳檔通道協作；設計可交公司實作，並維持輕量。第一階段透過兩端本地代理及專用匯出 inbox 接入原生 orchestration。完整 federation transport 適配另研究，不能預先承諾所有遠端控制功能已可用。
 
-## 後續工作與完成條件
+## 3. 使用者已決定的約束
 
-**Review 後優先項目：**先讀主設計書 6.1，驗證 Orca 原生持久入列、mutation receipt／replay 和未知狀態的查證方式；明確指定 bridge 專用 inbox、單一消費者及 ACK 責任。驗證 federation 的身分、Dispatch attachment 與連續序號限制，不能將外層 log-only seq 視為原生序號。依 6.1 定案 sequence_epoch、完成標記原子發布、檔名、保留清理、超時、單實例鎖及人工恢復，再執行四組故障注入驗收並留下證據；未證實能力標記待驗證，不要聲稱已實作。
+- 外網 → 內網：FTP 傳入，內網 polling 落地資料夾。內網 → 外網：itcp 傳至指定資料夾，外網 Windows 由網路芳鄰 polling。itcp 的命令格式、path、返回碼與完成語意目前未知；在公司先查現場說明，查不到再問使用者。
+- 同一套程式由設定檔或環境變數決定角色、peer、收件及送件；兩方向分開設定。一個主節點可協調多節點，人員仍可繼續操作。
+- 活動 polling 約 1 秒、idle 約 5 秒，可設定；其他 timeout／batch／idle 門檻是待實測的原型值，不是使用者已定的要求。
+- seq 僅檢查及記錄跳號／倒序，照收到順序處理，不等缺號。新訊息與 receipt 各自編號；retry 遞增，原 ID／seq 不變。
+- 不另建持久 seq counter；重啟與對端同步，無可靠基準就新區段，不猜舊序號。保留舊 outbox 信封與必要交接證據不等於新增 seq 資料庫。
+- 原生 agent、協作、Task、權限、確認、log／GUI 優先沿用；安全方案簡單並遵守公司政策。使用者允許修改程式碼、部署及操作正式環境，但每個實際操作仍遵守現場既有權限與確認機制。
+- 無法確定收過或執行過時，由人決定；不能把 unknown、timeout 或沒有紀錄當成未執行。內網結果依 itcp 傳回。
+- Linux 可能只能 SSH。優先驗證 Linux `orca serve`＋Windows browser client；不可行時驗證內網 Windows Orca＋SSH。能 SSH 不等於 browser 可直接連線。
 
-1. **勘查公司環境。** 唯讀確認 Orca 版本、作業系統、執行帳號、FTP 落地及讀寫權限、網路芳鄰讀取／清理行為、`itcp` 命令說明與返回值、Linux SSH、agent／模型可用性與公司政策。產出逐項實測證據及仍未知事項；未取得授權前不改正式環境。
-2. **追查 Orca 原生接點。** 從固定版本及公司實際版本檢查 runtime RPC、orchestration、federation relay 的 send/pull/import/ack、身分及 Dispatch 語意，並搜尋有無可插拔 transport、訊息 API、持久資料與 log 接口。產出「可直接沿用／需適配／不可保證」對照表，不直接修改 Orca 內部 DB。
-3. **判定相容方案。** 比較最薄外掛 bridge 與修改 Orca transport；釐清原生 federation 強制連續序號與使用者要求只記 log 的衝突，明確區分外層觀察序號與原生 relay 序號是否可共存。未驗證前不要宣稱完整原生 federation 或全部控制功能可以跨檔案運作。
-4. **定稿訊息與恢復。** 定義 JSON 欄位、receipt 是否可沿用原生機制、來源與目的、穩定 ID、`seq` 同步基準、重啟後同步失敗的區段識別、`retry` 比較方式、完成檔案判定，以及對端確認和工作完成的區別。以實際 Orca 資料持有與重啟測試判斷可恢復程度；不另存 `seq` 的限制需保留。
-5. **驗證 Linux 網頁方案。** 在公司許可範圍測試 Linux `orca serve`、Windows browser client、配對、SSH forwarding、登入與 agent、Orca UI 功能；不行時驗證 Windows 桌面 Orca + SSH。不要將可 SSH 直接推論為瀏覽器可連。
-6. **建立最小可驗證原型。** 依使用者範圍接上兩條單向通道與 polling，優先用 Orca 標準接口；記錄實作的邊界和未支援原生功能。涉及正式環境修改依現場授權與公司規範處理。
-7. **執行雙向與故障測試。** 測 active 約 1 秒／idle 5 秒、FTP 與 `itcp` 成功和失敗、半檔、重複、receipt 遺失、retry 遞增、seq 跳號與倒序、外網關機與重啟、雙端同時重啟、狀態未知、人員繼續操作、多節點及 SSH 斷線。驗證結果保留實測紀錄；不能保證的項目明寫限制。
-8. **更新設計與回報。** 在主設計書修正過期假設，標註版本和證據；以測試結果區分可用、失敗與未測，不把原生 federation 說成已支援 FTP。涉及序號語意、不可恢復工作或安全政策的實質選擇，帶具體證據請使用者決定。
+## 4. 3.1 已收斂的設計與仍待驗證之處
 
-## 已知風險與研究方向
+| 項目 | 目前設計 | 公司需要確認 |
+| --- | --- | --- |
+| Receipt 確認點 | 只能在可查證的 Orca 持久入列後回成功 receipt；不代表已讀／完成 | 指定 caller 的 send 成功與 requestShow 能否可靠核對及保留 |
+| 交接狀態 | incomplete → validated → prepared → enqueued／unknown → receipt_pending；寄件端收到有效確認後為 receipted | 呼叫前可取得／固定原生 request ID；prepared durability；入列回應遺失的查證能力 |
+| ACK 所有權 | 業務 inbox 仍由原代理消費；bridge 只消費專用匯出 inbox；整批存成穩定 outbox 才 ACK | 可用的合法地址／Run／Dispatch；peek／all 不消費；原生 row 到 outbox 的重播映射 |
+| 序號與去重 | sequence_epoch 區分重啟區段；去重依可信來源、目的與 message_id，不依 epoch／seq | 來源綁定、ID 生命週期及同步基準；原型沒有可靠已分配上限時採新 epoch |
+| 固定內容比較 | SHA-256(RFC 8785 canonical JSON(信封去除頂層 retry)) | 使用既有 JCS 實作；改 retry／排版不構成新工作，改固定內容必須 conflict |
+| 完整檔案 | 每次獨立 attempt；資料檔＋ready manifest，含長度與完整檔 hash；驗證同一份 bytes | itcp 能傳兩檔並保留名稱；優先原子發布，無 remote rename 時的等效條件必須經測試 |
+| 順序與卡住 | 首次完整驗證／納入處理的次序；同輪 ASCII 檔名平手；每 peer 獨立且有限量 | 不依底層列舉、mtime 或 seq 排序；unknown 只暫停受影響 peer 一般訊息，receipt／其他 peer 繼續 |
+| 單一執行者 | 每 inbox 指定 host owner＋本機 process lock；不提供跨主機 active-active | 第二實例拒絕；接手前舊 owner 確實結束；不能用 timeout 推論已停止 |
+| 保留與人工恢復 | 原型不自動清理未知資料；舊檔先查工作與交接證據 | 原生 prune、最長離線／重送、中間資料夾清理及備份回放時間；人工完成／取消的查證介面 |
+| 最小持久資料 | 優先 Orca 原有資料；不足時最小檔案 spool／manifest，不直接修改 Orca DB | 本地原子發布／flush 的可恢復性、容量與權限；不是新增工作 DB 或產品 log 系統 |
 
-- 網路芳鄰或中間系統可能清理檔案；兩端都關機時，沒有持久狀態或已遭清理的訊息不能保證恢復。需要證據確認 Orca 或通道實際保留哪些資料。
-- 一個 Task 被重建成不同 message ID，或 agent 完成副作用後回覆遺失，都可能造成重複執行；先查 Orca 原生 request／Dispatch 恢復能力，無法查證時交人處理。
-- 檔案完整性、已收確認、來源辨識和工作完成是不同問題。確認通道可行的交付標記及 Orca 原生功能後，再決定最小新增機制。
-- 發送工具回報成功不等於對端已讀。polling 每秒不代表工作即時完成，且不可令同步失敗阻止使用者要求的正常收到順序。
-- 研究 `orca serve` browser 支援時，確認實際版本的配對與可用功能；避免在未經公司允許時曝露網路服務或繞過內外網限制。
+上述是待實作的規格，不是原生 API 或公司環境已具備的事實。遇到可用性不足，記錄 blocked／unknown，提出具體替代方案，不把降級包裝成已滿足原需求。
+
+## 5. 已查核的原生證據
+
+先前研究記錄 Orca 1.4.244，固定 commit 為 `b8ec5c8d170bcb9988e65de547a3a4e98b2885a9`；本次補強讀取的是 GitHub 該版本來源，沒有重新操作本機或公司主機。
+
+| 來源 | 對本案的重要事實 |
+| --- | --- |
+| [messaging-and-gates.md](https://github.com/stablyai/orca/blob/b8ec5c8d170bcb9988e65de547a3a4e98b2885a9/skill-guides/orchestration/references/messaging-and-gates.md) | send 成功是 durable enqueue；coordinator 的並行 check 共用 FIFO batch；peek／all 為唯讀；整批處理後才 ACK |
+| [mutation-request-show.ts](https://github.com/stablyai/orca/blob/b8ec5c8d170bcb9988e65de547a3a4e98b2885a9/src/main/runtime/rpc/methods/orchestration/runs/mutation-request-show.ts) | requestShow 依 caller fingerprint 與 request ID 查原生持久收據；不能任意換 caller 解讀結果 |
+| [orchestration-mutation-request.ts](https://github.com/stablyai/orca/blob/b8ec5c8d170bcb9988e65de547a3a4e98b2885a9/src/shared/orchestration-mutation-request.ts) | completed／pending／absent 有不同含義；absent 可能是未到達、未記錄或已清理，不能證明沒發生副作用 |
+| [send-methods.ts](https://github.com/stablyai/orca/blob/b8ec5c8d170bcb9988e65de547a3a4e98b2885a9/src/main/runtime/rpc/methods/orchestration/messaging/send-methods.ts) 與 [send-point-to-point.ts](https://github.com/stablyai/orca/blob/b8ec5c8d170bcb9988e65de547a3a4e98b2885a9/src/main/runtime/rpc/methods/orchestration/messaging/send-point-to-point.ts) | 有 replay／receipt 路徑，但 worker_done 有特別的原子提交路徑；不能外推為所有普通訊息都已證實可安全 crash replay |
+| [federation-relay.ts](https://github.com/stablyai/orca/blob/b8ec5c8d170bcb9988e65de547a3a4e98b2885a9/src/main/runtime/rpc/methods/orchestration/federation/federation-relay.ts) | federation 原本就有 sequence／ACK，import 檢查 caller／attachment 並拒絕缺號；不是本案 log-only seq |
+
+尚未找到可直接配置 FTP／itcp 的公開 transport，以及外部 adapter 寫入 Orca log／GUI 的公開標準 API；這是有限查核結果，不是完整原始碼的不存在證明。公司版本需重新確認。
+
+## 6. 待辦事項、優先序與產出
+
+| 優先序 | 工作 | 完成後必須交付 |
+| --- | --- | --- |
+| P0 | 唯讀勘查 Orca 版本、OS、帳號、模型／agent、FTP／SMB／itcp、Linux SSH 與公司政策 | 去識別化環境清單；實際說明／回傳行為；每個 TBD 的證據或明確缺項 |
+| P0 | 驗證本地代理、專用匯出 inbox、合法 caller、send／requestShow／replay 與 retention | 主設計 §2.2 的實際接口表；每個 request 在呼叫前如何固定、重啟後如何查證；不能支援的功能 |
+| P0 | 查明普通訊息入列與 mutation receipt 的中斷空窗 | C03–C06 的實測；completed、pending、absent 各自處理；禁止盲目新建 request 的測試 |
+| P0 | 驗證 FTP／itcp 的兩檔完整發布、原子 rename 或等效校驗、單一 owner | C01、O03、T05／T07／T12 的證據；itcp 參數仍不得猜 |
+| P1 | 建立最小檔案適配原型與穩定 outbox 映射 | 同程式兩端設定、immutable attempt、polling、receipt、unknown、人工作業；不新增 orchestration 系統 |
+| P1 | 驗證四組核心故障：收件／入列／receipt 中斷、人工並讀、雙實例、人工結案後舊檔 | 依驗收文件 C／O 案例逐項記錄預期、實際、證據、是否允許自動重試 |
+| P1 | 跑全部 26 案例，涵蓋多 peer、timeout、排序、epoch、資料遺失與保留 | passed／failed／blocked／not_run 矩陣；實際入列及副作用次數，不只觀察 UI |
+| P1 | Linux serve＋browser 及 Windows SSH 備案 | 可連線路徑、配對／UI 功能、公司允許的 forwarding 與失聯恢復結果 |
+| P2 | 研究完整 federation 適配、ask／reply、log／GUI、原生清理政策與相容版本 | 維持原生連續 sequence／caller／Dispatch 的具體方案，或不能支援的限制；不得直接停用原生檢查 |
+| P2 | 更新主設計與 review | 以公司 commit／實測證據修正草案；可用時依使用者要求進行獨立 subagent review，留下 findings 與處理紀錄 |
+
+修改後遵守 repo 的檢查要求，包括可用環境下的 `pnpm check:changed --maxWorkers=2`；需要 UI 測試時遵守 AGENTS.md 的背景啟動與測試規範。本次僅變更研究 Markdown，沒有執行上述 repo 檢查、公司故障測試或 Mermaid 實際渲染，不可沿用為 passed。
+
+## 7. 不能漏掉的研究問題與停止條件
+
+**原生交接：**request ID 能否在第一次 mutation 前指定或取得？caller／runtime 重啟後是否穩定？相同 request、相同參數的 replay 會不會只回原結果？原始命令仍執行時能否安全查詢？一般 status 的入列與 receipt 是否有可恢復的原子性？每個問題要對選用方法實測，不能只看 worker_done 路徑。
+
+**專用 inbox：**地址實際如何建立、誰消費、誰 ACK？整批部分保存後中斷是否重播同 row 並沿用原 ID？人工／GUI 是否有其他途徑把 row 標已讀？原生 Run／Dispatch 結束或 caller 改變後如何查舊結果？不能用新的 inbox 或 caller 掩蓋舊 unknown。
+
+**傳輸與資源：**itcp 是否只在特定 OS／帳號可執行、是否保留檔名、一次可否傳兩檔、成功返回是否只是排入傳輸？SMB 快取、讀檔 deadline、process 終止與 disk-full 如何處理？只剩 read-only 權限時可否完成隔離？單一壞檔／失聯 peer 是否造成飢餓？未驗證時不降級用 size 穩定當完整性。
+
+**保留與恢復：**中間系統多久清檔、最長關機多久、原生 mutation receipt／message 何時 prune、備份是否會回退？去重資料遺失時是否可偵測並進入恢復模式？工作被重建成新 ID、人工先完成／取消或恢復舊備份時，要避免把舊命令當新工作。期限沒有證據前，不自動清理 unresolved 資料。
+
+**多節點與部署：**每個 peer 的可信來源及 route 是否能區分？主端轉交消息仍由本地代理處理；不得自動無限轉寄。Linux／Windows 對 spool、鎖、路徑及 timeout 的差異需實測；兩台機器不能以同一資料夾自行推論已形成高可用叢集。
+
+**人工接手：**unknown 要顯示原 message／request／工作關聯及已查證據。人員可選等待、確認已完成、取消或有意識地重做；只有最後一種才建立新的業務工作。`absent`、新 epoch、timeout 或新 request ID 都不能自動授權重新執行。
+
+## 8. 現況與交接完成定義
+
+已完成：原生架構研究、3.1 主設計及 Mermaid 原始碼、review 對照、26 個驗收案例、公司 Agent 的閱讀順序與待辦。歷史可靠性文件已標示以現行主設計為準。
+
+未完成：公司環境勘查、adapter 程式、原生 API 相容性實測、FTP／itcp／SMB 真實傳輸、故障測試、Linux 網頁方案驗證、repo 檢查與新一輪獨立 subagent review。沒有宣稱 reviewer 已零意見。
+
+後續回報必須分開「文件已完成」「原型可用」「公司實測通過」；所有 blocked 項目寫清缺少什麼證據。涉及改變使用者選定的 seq 語意、無法恢復的正式工作或公司政策時，帶具體證據請使用者決定；其他已授權工作繼續進行。
