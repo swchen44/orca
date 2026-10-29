@@ -31,6 +31,8 @@
 
 ## 後續工作與完成條件
 
+**Review 後優先項目：**先讀主設計書 6.1，驗證 Orca 原生持久入列、mutation receipt／replay 和未知狀態的查證方式；明確指定 bridge 專用 inbox、單一消費者及 ACK 責任。驗證 federation 的身分、Dispatch attachment 與連續序號限制，不能將外層 log-only seq 視為原生序號。依 6.1 定案 sequence_epoch、完成標記原子發布、檔名、保留清理、超時、單實例鎖及人工恢復，再執行四組故障注入驗收並留下證據；未證實能力標記待驗證，不要聲稱已實作。
+
 1. **勘查公司環境。** 唯讀確認 Orca 版本、作業系統、執行帳號、FTP 落地及讀寫權限、網路芳鄰讀取／清理行為、`itcp` 命令說明與返回值、Linux SSH、agent／模型可用性與公司政策。產出逐項實測證據及仍未知事項；未取得授權前不改正式環境。
 2. **追查 Orca 原生接點。** 從固定版本及公司實際版本檢查 runtime RPC、orchestration、federation relay 的 send/pull/import/ack、身分及 Dispatch 語意，並搜尋有無可插拔 transport、訊息 API、持久資料與 log 接口。產出「可直接沿用／需適配／不可保證」對照表，不直接修改 Orca 內部 DB。
 3. **判定相容方案。** 比較最薄外掛 bridge 與修改 Orca transport；釐清原生 federation 強制連續序號與使用者要求只記 log 的衝突，明確區分外層觀察序號與原生 relay 序號是否可共存。未驗證前不要宣稱完整原生 federation 或全部控制功能可以跨檔案運作。

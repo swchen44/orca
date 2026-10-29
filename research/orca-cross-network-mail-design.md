@@ -113,6 +113,7 @@ flowchart TD
   "version": 1,
   "from": "external",
   "to": "internal",
+  "sequence_epoch": "cdbf55ea-9301-41de-9de5-fc3197087d18",
   "seq": 12,
   "retry": 0,
   "kind": "message",
@@ -150,6 +151,7 @@ flowchart TD
   "version": 1,
   "from": "internal",
   "to": "external",
+  "sequence_epoch": "c1cfb790-5f3f-4bf8-8ead-709efc62c849",
   "seq": 7,
   "retry": 0,
   "kind": "receipt",
@@ -177,17 +179,52 @@ sequenceDiagram
     A->>F: 傳送 message，seq 及 retry=0
     B->>F: polling 發現並讀取完整檔案
     B->>B: 檢查 seq、訊息 ID 與可恢復狀態
-    B->>T: 傳送 receipt（如需適配器確認）
     B->>I: 依原生介面交付訊息
+    B->>T: 查證持久入列後傳送 receipt
     A->>T: polling 並收到 receipt
     I->>B: 依 Orca 機制提供回覆
     B->>T: 傳送回覆訊息
     A->>T: polling 並讀取回覆
-    A->>F: 傳送回覆的 receipt（如需）
     A->>O: 依原生介面交付回覆
+    A->>F: 查證持久入列後傳送回覆的 receipt（如需）
 ```
 
 圖中 receipt 與 Orca 的工作完成是不同事件；實際先後可因網路及 polling 而不同。重複訊息仍需按照可查證的紀錄處理，`seq` 異常只記錄、不重新排序。
+
+### 6.1 Review 補強：交接、恢復與驗收
+
+本節為設計與待驗證事項，不代表 Orca 已提供所需能力。優先驗證 Orca 的持久入列和 mutation receipt／replay 是否支援公開查詢與安全重試。無法查證是否已交付或執行時標記 unknown，由人查證並決定，不自動重做。
+
+| 階段 | 查證及責任 |
+| --- | --- |
+| 發現檔案 | 完成標記、長度與 hash 均通過才納入處理；不完整時不交付、不回成功 receipt。 |
+| 完整收件 | 按來源及 message_id 查原生紀錄；沒有可恢復證據時不能宣稱可靠收件。 |
+| 交付 Orca | 使用穩定請求 ID 和經驗證的本地介面；回應遺失時查原生 mutation receipt／工作狀態，查不到即 unknown。 |
+| 持久入列已查證 | 才發送跨網 receipt；發送失敗保留待送狀態、重送相同 receipt。receipt 不代表工作完成。 |
+| 工作完成／取消 | 核對 Orca 原生狀態；人工已處理後重播舊檔，證據不足時 unknown，不重新執行。 |
+
+原生查詢、資料保存與安全重試能力須實測；如需最小持久收件與待送紀錄，先確定內容與保留期，不能只靠記憶體宣稱可恢復。去重鍵為經確認的來源及 message_id；同鍵固定內容不同視為衝突。`sequence_epoch` 為每個來源與目的方向的區段 UUID：重送保留 epoch、message_id、seq 並增加 retry；無法同步時建立新 epoch，舊訊息保留舊 epoch。不因新區段重新執行，也不新增 seq 資料庫。
+
+**Mailbox 責任：**先驗證 bridge 專用收件地址與單一消費者，由 bridge 負責該 inbox 的 check／ACK；人員監看使用經驗證不消費的 peek／all。bridge 不與人工或 coordinator 競爭同一 batch；以上介面若不可用，先釐清原生行為，不能假設各讀者有獨立 ACK。
+
+| 功能 | 預定介面及地址映射 | 限制 |
+| --- | --- | --- |
+| 本地交接 | 兩端本地接收代理透過支援的 mailbox／orchestration，設定節點與專用地址 | 身分、權限、去重和持久查詢待驗證；不得偽造 Dispatch 或 worker_done。 |
+| 跨網傳送 | FTP、itcp、網芳資料夾適配器；from／to 映射已設定節點 | 外層 seq 只記錄，不等於 federation 序號。 |
+| federation | 另研究 relay、caller 與 Dispatch attachment | 原生 import 要求連續序號，不能直接套用可跳號的外層 seq；完整跨網控制尚未證實。 |
+
+**完整檔案：**每次傳輸使用獨立 attempt ID，發布 `<message_id>.<attempt_id>.json`，再發布同名 `.ready.json`，包含資料長度與 SHA-256；兩者一致才處理。完成標記本身須透過經實測的暫存後原子改名發布；FTP、itcp、網芳不支援時先驗證其他可靠方案，未證實前不啟用自動處理。hash 只檢查完整性；檔案可見或大小暫時不變不代表完成。
+
+**順序與資源：**收到順序指首次確認完整並納入處理的順序；同輪發現多個完整檔案時按完整檔名的字元順序決定，不依 seq 排序。交付順序不保證工作完成順序；有相依性時使用原生 Task。網芳讀取及 itcp 逾時、每輪處理上限可設定；對端獨立處理，失敗或待送 receipt 不阻塞其他節點。逾時代表結果未知。每個 inbox 使用單一消費者和經實測的排他鎖，第二個實例或失鎖者停止消費。
+
+**保留與清理：**待送檔保留到可查證匹配 receipt；已收紀錄與 receipt 至少保留到重送窗口結束、確認對端不再重送且原生狀態可查證。實際期限與人工清理流程待公司實測；去重證據消失時不得把舊命令當成新工作。
+
+| 故障注入驗收 | 預期、查證來源與重試 |
+| --- | --- |
+| 收件前、交付前、入列後回應前、receipt 發送前後分別斷電 | 比對完整檔案、原生入列及待送紀錄；只有證明安全的階段可自動重試，無法查明即 unknown。 |
+| bridge 與人員同時讀取 | 以 mailbox 狀態驗證專用 inbox 的 ACK 責任與 peek 不消費；未證實時停止競爭式讀取。 |
+| 兩個 bridge 同時啟動 | 驗證鎖及 mailbox 狀態；僅持鎖者消費，失鎖者不得重試交付。 |
+| 人工完成／取消後重播舊檔 | 查原生狀態與去重證據，不重複執行；查不到即 unknown，不自動重做。 |
 
 ## 7. 異常及處理
 
