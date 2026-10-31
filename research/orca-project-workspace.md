@@ -155,3 +155,58 @@ C:\company\
 
 除了名稱、任務連結等 workspace 資料，Orca 也有適用於一般 workspace 的介面及 agent 設定；目前未查到一個與截圖相對應、可單獨指定所有 Folder Workspace 新建磁碟根目錄的設定頁。
 
+## 實際例子：這台電腦的 `C:\Users\swche\orca`
+
+以下是 2026-11-01 的本機檢查結果，目錄和分支之後可能變動。這是一個實際的 Git worktree 例子，**不是** Folder Workspace 的例子：
+
+```text
+C:\Users\swche\orca\
+├── projects\
+│   ├── codex-chatgpt-web-study\   # 另一個 Git repository
+│   └── orca_study\                # 原始 checkout，目前 branch：master
+│       └── .git\                  # Git 共用資料與 worktree 登記
+└── workspaces\
+    ├── .orca-preparing\
+    └── orca_study\                # 依 repository 名稱分類的資料夾
+        └── 2orca\                 # orca_study 的 linked worktree
+            └── .git               # 指向 Git 管理資料的文字檔
+```
+
+`git worktree list` 在 `orca_study` 查到兩筆：
+
+| 工作目錄 | 角色 | 檢查時的 branch |
+| --- | --- | --- |
+| `C:\Users\swche\orca\projects\orca_study` | 主 checkout | `master` |
+| `C:\Users\swche\orca\workspaces\orca_study\2orca` | linked worktree | `sw/research-orca-network-bridge` |
+
+兩者檢查時都指向同一個 commit `13bf0be`，但 branch 不同，之後可以各自前進。`projects\orca_study` 是本機 repository，與本文件所在的 GitHub `swchen44/orca` repository 不應當成同一個 repository。
+
+### 它們用什麼 link 連在一起？
+
+這個例子中，`2orca` 與其父資料夾經檢查是一般目錄，沒有顯示為 Windows symlink 或 junction。Git 的連結是透過**普通文字檔中的路徑，以及主 repository 的管理資料**實現，不是把整個 `2orca` 目錄做成檔案系統捷徑：
+
+```text
+workspaces\orca_study\2orca\.git          # 文字檔
+    │
+    └─ gitdir: C:/Users/swche/orca/projects/orca_study/.git/worktrees/
+               12260-d3149bc4-0bfe-4360-950a-1aa37e94db77
+                                      │
+                                      ├─ gitdir → 2orca/.git
+                                      ├─ commondir → ../..  # 主 checkout 的 .git
+                                      ├─ HEAD → 該 worktree 目前的 branch
+                                      └─ index → 該 worktree 的暫存狀態
+```
+
+上圖為了易讀將第一個路徑換行；實際 `.git` 文字檔的 `gitdir:` 指標是一行。管理目錄名稱由 Git 產生，不應假設其他電腦或重新建立後會相同。兩個 worktree 的 Git objects 與一般 branch refs 由同一 repository 共用，但各自有工作目錄、`HEAD` 與 index；修改一邊的檔案，不會自動修改另一邊的工作目錄。[來源：Git worktree 文件](https://git-scm.com/docs/git-worktree)
+
+可以用唯讀指令確認：
+
+```powershell
+git -C C:\Users\swche\orca\projects\orca_study worktree list
+Get-Content C:\Users\swche\orca\workspaces\orca_study\2orca\.git
+git -C C:\Users\swche\orca\workspaces\orca_study\2orca rev-parse --absolute-git-dir
+git -C C:\Users\swche\orca\workspaces\orca_study\2orca rev-parse --git-common-dir
+```
+
+避免手動移動或刪除這些 `.git` 管理檔案；若要移動或移除 worktree，使用 Orca 或 Git 的 worktree 命令，以維持登記關係。
+
