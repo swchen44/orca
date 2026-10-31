@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1030" viewBox="0 0 1600 1030" role="img" aria-labelledby="title desc">
+<title id="title">Orca 內外網非同步通訊架構</title><desc id="desc">外網主 Orca 使用 FTP 傳入，內網使用 itcp 傳回，兩端以資料夾輪詢交換訊息，內網 Windows 可經 SSH 操作 Linux。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#526987"/></marker><style>text{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;fill:#14283f}.title{font-size:35px;font-weight:700}.sub{font-size:18px;fill:#50647a}.heading{font-size:23px;font-weight:700}.label{font-size:19px;font-weight:700}.body{font-size:16px}.tiny{font-size:15px;fill:#425c73}.box{fill:#fff;stroke:#c9d7e5;stroke-width:2}.line{fill:none;stroke:#526987;stroke-width:3;marker-end:url(#arrow)}.tag{font-size:15px;font-weight:700}</style></defs>
+<rect width="1600" height="1030" fill="#f4f7fb"/>
+<text x="60" y="65" class="title">Orca 內外網非同步通訊架構</text><text x="60" y="99" class="sub">設計示意｜以既有 Orca 為核心，新增檔案傳送與 polling 適配層</text>
+<rect x="45" y="130" width="485" height="590" rx="20" fill="#e9f2ff" stroke="#bad3f4"/><text x="70" y="170" class="heading">外網 · Windows</text>
+<rect x="72" y="205" width="430" height="110" rx="14" class="box"/><text x="95" y="244" class="label">主 Orca + 使用者操作</text><text x="95" y="276" class="body">工作分派、訊息與原生權限</text>
+<rect x="72" y="365" width="430" height="110" rx="14" class="box"/><text x="95" y="404" class="label">外網通訊適配器</text><text x="95" y="436" class="body">FTP 發送 · 網芳收件資料夾 polling</text>
+<rect x="72" y="535" width="430" height="115" rx="14" class="box"/><text x="95" y="574" class="label">網路芳鄰收件資料夾</text><text x="95" y="606" class="body">接收內網 itcp 傳出的檔案</text>
+<path d="M287 315V365" class="line"/><path d="M235 535V475" class="line"/>
+<rect x="560" y="130" width="405" height="590" rx="20" fill="#fff6e7" stroke="#f0d6a6"/><text x="585" y="170" class="heading">公司既有單向通道</text>
+<rect x="595" y="260" width="335" height="104" rx="14" class="box"/><text x="620" y="300" class="label">FTP：外網 → 內網</text><text x="620" y="330" class="tiny">訊息及對回覆的收件確認</text>
+<rect x="595" y="485" width="335" height="104" rx="14" class="box"/><text x="620" y="525" class="label">itcp：內網 → 外網</text><text x="620" y="555" class="tiny">訊息及對請求的收件確認</text>
+<rect x="995" y="130" width="560" height="590" rx="20" fill="#e8f7f1" stroke="#b9dfce"/><text x="1020" y="170" class="heading">內網 · Windows + Linux</text>
+<rect x="1025" y="205" width="500" height="90" rx="14" class="box"/><text x="1048" y="243" class="label">FTP 落地資料夾</text><text x="1048" y="273" class="body">內網適配器定時掃描完整檔案</text>
+<rect x="1025" y="345" width="500" height="100" rx="14" class="box"/><text x="1048" y="383" class="label">內網通訊適配器</text><text x="1048" y="415" class="body">落地資料夾 polling · itcp 發送</text>
+<rect x="1025" y="500" width="500" height="90" rx="14" class="box"/><text x="1048" y="538" class="label">內網 Windows Orca</text><text x="1048" y="568" class="body">本地 agent 與使用者操作</text>
+<rect x="1025" y="630" width="500" height="60" rx="14" fill="#fff" stroke="#a6cabc" stroke-width="2"/><text x="1048" y="667" class="label">內網 Linux · SSH 遠端工作</text>
+<path d="M502 390 H550 V312 H595" class="line"/><path d="M930 312 H980 V250 H1025" class="line"/><path d="M1275 295 V345" class="line"/><path d="M1275 445 V500" class="line"/><path d="M1275 590 V630" class="line"/><path d="M1025 415 H990 V537 H930" class="line"/><path d="M595 537 H550 V592 H502" class="line"/>
+<rect x="45" y="750" width="1510" height="225" rx="18" fill="#fff" stroke="#d7e1ec"/><text x="75" y="790" class="heading">設計邊界與待驗證</text><text x="75" y="826" class="body">① 兩端同一套適配程式，以設定區分收件位置、發送方式與對端；可延伸至多個受託 Orca。</text><text x="75" y="858" class="body">② 完整檔案 → 可查證 Orca 入列 → receipt；工作完成另由 Orca 回報。未知狀態交由人確認。</text><text x="75" y="890" class="body">③ seq 只記錄異常、不重排；與原生 federation 連續序號不同。Orca 接口與 ACK 責任待實測。</text><text x="75" y="922" class="body">④ Linux 也可評估 orca serve + Windows 瀏覽器（需公司允許的連線）；itcp 語法與路徑待確認。</text><text x="75" y="954" class="tiny">此圖為提議架構，非已實作功能；FTP、itcp 為非同步檔案通道，並非瀏覽器即時連線。</text>
+</svg>

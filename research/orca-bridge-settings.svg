@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1420" viewBox="0 0 1600 1420" role="img" aria-labelledby="title desc">
+<title id="title">Orca 跨網通訊新增設定介面示意</title><desc id="desc">外網和內網共用的建議設定介面，包含節點路由、收發通道、輪詢、重試、紀錄與尚待確認項目。</desc>
+<defs><style>text{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;fill:#162b43}.title{font-size:34px;font-weight:700}.sub{font-size:18px;fill:#52687f}.section{font-size:23px;font-weight:700}.label{font-size:17px;font-weight:700}.value{font-size:17px;fill:#314d68}.hint{font-size:15px;fill:#63778d}.chip{font-size:15px;fill:#145a9c;font-weight:700}.input{fill:#fff;stroke:#bacbdb;stroke-width:2}.card{fill:#fff;stroke:#d7e2ed;stroke-width:2}</style></defs>
+<rect width="1600" height="1420" fill="#f2f6fb"/><text x="60" y="63" class="title">跨網通訊設定</text><text x="60" y="98" class="sub">新增介面示意 · 欄位與預設值是提案，並非 Orca 現有畫面或已實作功能</text>
+<rect x="40" y="125" width="1520" height="100" rx="16" fill="#e8f2ff"/><text x="68" y="164" class="label">同一套程式，依本端設定切換傳送與收件方式</text><text x="68" y="196" class="hint">收件與發送分開設定；路徑、憑證、itcp 格式、Orca 接口及實際預設值須在公司確認。</text>
+<rect x="40" y="250" width="745" height="395" rx="16" class="card"/><text x="68" y="290" class="section">1　節點與對端</text><text x="68" y="332" class="label">啟用跨網通訊</text><rect x="480" y="310" width="265" height="40" rx="7" class="input"/><text x="495" y="337" class="value">開啟／關閉</text>
+<text x="68" y="388" class="label">本端節點 ID</text><rect x="340" y="363" width="405" height="42" rx="7" class="input"/><text x="354" y="391" class="value">external 或 internal</text>
+<text x="68" y="445" class="label">本端角色</text><rect x="340" y="420" width="405" height="42" rx="7" class="input"/><text x="354" y="448" class="value">協調端／受託端</text>
+<text x="68" y="502" class="label">對端路由</text><rect x="340" y="477" width="405" height="42" rx="7" class="input"/><text x="354" y="505" class="value">對端 ID、收發路徑映射</text>
+<text x="68" y="558" class="label">Orca 交接地址</text><rect x="340" y="534" width="405" height="42" rx="7" class="input"/><text x="354" y="562" class="value">專用 inbox／代理地址（待驗證）</text><text x="68" y="612" class="hint">可新增多個對端；不可假定原生 federation 可直接走檔案通道。</text>
+<rect x="815" y="250" width="745" height="395" rx="16" class="card"/><text x="843" y="290" class="section">2　收件與發送</text><text x="843" y="333" class="label">收件資料夾</text><rect x="1110" y="307" width="405" height="42" rx="7" class="input"/><text x="1125" y="335" class="value">本機或網芳路徑</text>
+<text x="843" y="389" class="label">發送方式</text><rect x="1110" y="363" width="405" height="42" rx="7" class="input"/><text x="1125" y="391" class="value">FTP ／ itcp</text>
+<text x="843" y="445" class="label">FTP 目的地</text><rect x="1110" y="419" width="405" height="42" rx="7" class="input"/><text x="1125" y="447" class="value">主機、port、路徑（待確認）</text>
+<text x="843" y="501" class="label">itcp 發送設定</text><rect x="1110" y="475" width="405" height="42" rx="7" class="input"/><text x="1125" y="503" class="value">程式與目的地（格式待確認）</text>
+<text x="843" y="557" class="label">認證資訊</text><rect x="1110" y="531" width="405" height="42" rx="7" class="input"/><text x="1125" y="559" class="value">依公司允許的憑證管理方式</text><text x="843" y="612" class="hint">外網：FTP 送、網芳收；內網：itcp 送、FTP 落地資料夾收。</text>
+<rect x="40" y="675" width="745" height="370" rx="16" class="card"/><text x="68" y="715" class="section">3　輪詢與重試</text>
+<text x="68" y="760" class="label">活動時 polling</text><rect x="385" y="735" width="360" height="42" rx="7" class="input"/><text x="400" y="763" class="value">1 秒（可設定）</text>
+<text x="68" y="816" class="label">閒置時 polling</text><rect x="385" y="791" width="360" height="42" rx="7" class="input"/><text x="400" y="819" class="value">5 秒（可設定）</text>
+<text x="68" y="872" class="label">進入 idle 門檻</text><rect x="385" y="847" width="360" height="42" rx="7" class="input"/><text x="400" y="875" class="value">建議 30 秒，待實測</text>
+<text x="68" y="928" class="label">重送間隔</text><rect x="385" y="903" width="360" height="42" rx="7" class="input"/><text x="400" y="931" class="value">可設定；預設待實測</text>
+<text x="68" y="985" class="label">讀取／itcp 逾時</text><rect x="385" y="960" width="360" height="42" rx="7" class="input"/><text x="400" y="988" class="value">可設定；數值待實測</text>
+<rect x="815" y="675" width="745" height="370" rx="16" class="card"/><text x="843" y="715" class="section">4　處理與顯示</text>
+<text x="843" y="759" class="label">收件確認</text><text x="1080" y="759" class="value">可查證持久入列後發送 receipt</text>
+<text x="843" y="810" class="label">seq</text><text x="1080" y="810" class="value">異常記錄；不阻擋、不重排</text>
+<text x="843" y="861" class="label">retry</text><text x="1080" y="861" class="value">每次重送遞增；ID／seq 不變</text>
+<text x="843" y="912" class="label">未知狀態</text><text x="1080" y="912" class="value">不自動重做，由人查證</text>
+<text x="843" y="963" class="label">記錄與顯示</text><text x="1080" y="963" class="value">優先採 Orca 原生機制（待驗證）</text>
+<text x="843" y="1010" class="hint">每個 inbox 僅單一消費者；完成標記與檔案發布需先實測。</text>
+<rect x="40" y="1075" width="1520" height="230" rx="16" fill="#fff8e9" stroke="#eed3a0" stroke-width="2"/><text x="68" y="1118" class="section">公司環境待確認</text><text x="68" y="1158" class="value">FTP 登入與落地路徑　·　itcp 命令及回傳值　·　網芳路徑、權限與檔案保留</text><text x="68" y="1196" class="value">原生 mailbox 接口與 ACK　·　資料恢復及去重證據　·　完成標記原子發布　·　逾時與清理期限</text><text x="68" y="1234" class="value">多節點路由及鎖　·　Windows／Linux SSH 權限　·　瀏覽器連線與實際功能</text><text x="68" y="1272" class="hint">實際參數、儲存格式與畫面安排以驗證後的實作為準；不要把憑證寫入訊息內容。</text>
+<rect x="1200" y="1330" width="150" height="54" rx="9" fill="#e6edf5"/><text x="1243" y="1364" class="label">取消</text><rect x="1370" y="1330" width="150" height="54" rx="9" fill="#1767b1"/><text x="1413" y="1364" font-family="Microsoft JhengHei, sans-serif" font-size="17" font-weight="700" fill="#fff">儲存</text><text x="68" y="1365" class="hint">示意畫面，按鈕不可操作</text>
+</svg>
