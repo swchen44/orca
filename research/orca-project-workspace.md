@@ -210,3 +210,56 @@ git -C C:\Users\swche\orca\workspaces\orca_study\2orca rev-parse --git-common-di
 
 避免手動移動或刪除這些 `.git` 管理檔案；若要移動或移除 worktree，使用 Orca 或 Git 的 worktree 命令，以維持登記關係。
 
+## 實際例子：`D:\git` 的兩種資料夾
+
+以下根據 2026-11-01 本機唯讀檢查：`clinic_bookmarklet` 本身是 Git repo；`yazi_work` 不是 Git repo，目前它底下的 `yazi_intranet` 是 Git repo。未來的其他 repo 名稱僅為示意：
+
+```text
+D:\git\
+├── clinic_bookmarklet\          # 一個 Git repo，branch：master
+│   └── .git\
+└── yazi_work\                   # 研究用途的普通資料夾，不是 Git repo
+    ├── yazi_intranet\            # 一個 Git repo，branch：main
+    │   └── .git\
+    └── 其他研究用 repo\           # 未來可能加入，名稱僅示意
+```
+
+### 1. `clinic_bookmarklet`：直接加入 Project
+
+1. 在 Orca 側邊欄選 **Add Repo／新增專案**，選擇現有資料夾 `D:\git\clinic_bookmarklet`。它已是 repo，不必重新 clone 或移動。
+2. 若只是要查看原始資料，可選取該 Project 的原始 checkout；此時編輯會直接發生在 `D:\git\clinic_bookmarklet`。
+3. 若要隔離一項任務，在該 Project 名稱旁選 `+`，建立 workspace，例如 `fix-bookmarklet`，確認起始 branch 後選 Codex、Claude 或空白終端機。[來源：Orca 首次使用文件](https://www.onorca.dev/docs/first-session)
+
+沿用先前截圖中的工作區根目錄 `C:\Users\swche\orca\workspaces`，且巢狀工作區開啟、無 Project 路徑覆寫時，新增位置預期如下；這是**建立後的示意，不表示目前已建立**：
+
+```text
+D:\git\clinic_bookmarklet\                         # 原始 checkout
+C:\Users\swche\orca\workspaces\
+└── clinic_bookmarklet\
+    └── fix-bookmarklet\                           # 新建的 Git worktree
+```
+
+兩個目錄可位於不同磁碟；Git 透過 worktree 的 `.git` 指標記錄連結。路徑和名稱仍以建立時的實際設定與 Orca 結果為準。
+
+### 2. `yazi_work`：研究資料夾，底下各 repo 分開管理
+
+最簡單的起步方式是直接以 **Add Repo／新增專案** 加入現有的 `D:\git\yazi_work\yazi_intranet`。之後每 clone 一個新的 Git repo 到 `yazi_work` 下，再把該 repo 加入 Orca；每個 repo 是各自獨立的 Project，保留各自的 branch 和 Git 歷史。
+
+如果想在 Orca 側邊欄把它們集中顯示，可加入父資料夾 `D:\git\yazi_work`，在 Orca 提供匯入選項時將其下的 repo 匯入並歸到同一個 **Project Group**。目前只查到一個 repo，畫面是否立即提供群組選項取決於 Orca 版本與掃描結果；若沒有，就先直接加入 `yazi_intranet`，有其他 repo 時再使用群組流程。[來源：Orca 的多 repo 群組說明](https://www.onorca.dev/docs/model/worktrees)
+
+```text
+Orca 側邊欄（示意）
+├── Project：clinic_bookmarklet
+│   └── Workspace：fix-bookmarklet
+└── Project Group：yazi_work
+    ├── Project：yazi_intranet
+    │   └── Workspace：study-build
+    └── Project：其他研究用 repo      # 未來加入，名稱僅示意
+```
+
+選 `yazi_intranet` 旁的 `+` 建立 `study-build` 時，沿用截圖設定，預期 worktree 在 `C:\Users\swche\orca\workspaces\yazi_intranet\study-build`；原始 repo 仍在 `D:\git\yazi_work\yazi_intranet`。建立 worktree 前，確認起始 branch 和現有尚未 commit 的修改：新 worktree 由選定的 Git ref 建立，不會自動帶入原目錄未提交的修改。
+
+如果要讓 agent 一次查看 `yazi_work` 下多個 repo，可在 Project Group 建立 Folder Workspace，讓它以 `D:\git\yazi_work` 為工作範圍；這適合跨 repo 閱讀比較，但不會替每個 repo 自動建立隔離 worktree。若直接修改其中檔案，就會改到各 repo 的原始 checkout。需要隔離修改時，應到對應的 Project 個別建立 worktree。
+
+上述為開啟與組織建議；本次只檢查路徑和 Git 狀態，沒有在 Orca 新增 Project、建立群組或 worktree，也沒有移動或修改這些 repo。
+
