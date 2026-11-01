@@ -13,6 +13,19 @@
 | 4 | [可靠投遞歷史研究](orca-bridge-reliability-design.md) | 過去較重的可靠性方案與取捨，僅供參考。不得採用其永久 seq 保存、固定重送 bytes、強制簽章等作為現行需求 |
 | 5 | [早期橋接研究](orca-network-bridge-research.md) | 早期通道與部署研究背景；遇到差異以主設計及使用者後續指示為準 |
 
+### 後續選型與通訊研究（2026-11-01）
+
+這些文件補充現行3.1主設計，不取代主設計或驗收規格，也不表示已決定改用Herdr：
+
+| 文件 | 閱讀用途 |
+| --- | --- |
+| [Herdr／Orca選型比較](herdr-vs-orca-study.md) | 需求對照、多主機與SSH、TUI/App/Core區分、改造gap、效能測試設計及社群快照；含stack、architecture、flowchart、sequence圖 |
+| [Codex／Claude通訊專題](agent-communication-comparison.md) | CLI/API/PTY/mailbox分層、錯誤與重試、Orca 1.4.245 structured/terminal模式、worker保留及關閉UI後的恢復 |
+| [Herdr TUI原始碼查核](herdr-source-findings.md) | 固定commit的SSH routing、NDJSON/bincode、agent lifecycle與ACK界線 |
+| [Herdr Core messaging查核](herdr-core-messaging-findings.md) | 固定commit的hc send、parent/child、turn wait、notes/outbox、重啟與去重限制 |
+
+效能尚無同條件實測；GitHub stars/downloads不是活躍使用者數。資料快照位於`.study-evidence/`，可用[重查腳本](collect-comparison-evidence.py)產生新觀察；重跑會取得當時最新資料，不能覆蓋原日期結論後仍宣稱同一份快照。
+
 修改程式碼前另讀 repo 的 `AGENTS.md`、適用的本地規範、公司 Orca 版本的 CLI／內建 skill；保存版本與本研究基準的差異。歷史文件沒有優先於現行主設計的效力。
 
 ## 2. Who／What／How

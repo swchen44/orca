@@ -1,0 +1,236 @@
+{
+  "observed_at": "2026-11-01T10:17:16.589342+00:00",
+  "repository": {
+    "full_name": "stablyai/orca",
+    "html_url": "https://github.com/stablyai/orca",
+    "default_branch": "main",
+    "stargazers_count": 112010,
+    "forks_count": 7086,
+    "subscribers_count": 151,
+    "open_issues_count": 7866,
+    "created_at": "2026-03-17T03:28:57Z",
+    "pushed_at": "2026-11-01T10:16:43Z",
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    }
+  },
+  "latest_release": {
+    "tag_name": "v1.4.245",
+    "published_at": "2026-10-30T05:34:13Z",
+    "html_url": "https://github.com/stablyai/orca/releases/tag/v1.4.245",
+    "assets": [
+      {
+        "name": "latest-linux-arm64.yml",
+        "size": 690,
+        "download_count": 2634,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/latest-linux-arm64.yml"
+      },
+      {
+        "name": "latest-linux.yml",
+        "size": 677,
+        "download_count": 59169,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/latest-linux.yml"
+      },
+      {
+        "name": "latest-mac.yml",
+        "size": 796,
+        "download_count": 359693,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/latest-mac.yml"
+      },
+      {
+        "name": "latest.yml",
+        "size": 343,
+        "download_count": 156543,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/latest.yml"
+      },
+      {
+        "name": "Orca-1.4.245-arm64-mac.zip",
+        "size": 276831894,
+        "download_count": 129452,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/Orca-1.4.245-arm64-mac.zip"
+      },
+      {
+        "name": "Orca-1.4.245-arm64-mac.zip.blockmap",
+        "size": 284363,
+        "download_count": 24005,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/Orca-1.4.245-arm64-mac.zip.blockmap"
+      },
+      {
+        "name": "Orca-1.4.245-mac.zip",
+        "size": 286400556,
+        "download_count": 103253,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/Orca-1.4.245-mac.zip"
+      },
+      {
+        "name": "Orca-1.4.245-mac.zip.blockmap",
+        "size": 292775,
+        "download_count": 882,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/Orca-1.4.245-mac.zip.blockmap"
+      },
+      {
+        "name": "orca-ide-1.4.245.aarch64.rpm",
+        "size": 153137877,
+        "download_count": 704,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-ide-1.4.245.aarch64.rpm"
+      },
+      {
+        "name": "orca-ide-1.4.245.x86_64.rpm",
+        "size": 157051293,
+        "download_count": 26991,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-ide-1.4.245.x86_64.rpm"
+      },
+      {
+        "name": "orca-ide_1.4.245_amd64.deb",
+        "size": 186335016,
+        "download_count": 28470,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-ide_1.4.245_amd64.deb"
+      },
+      {
+        "name": "orca-ide_1.4.245_arm64.deb",
+        "size": 182275752,
+        "download_count": 919,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-ide_1.4.245_arm64.deb"
+      },
+      {
+        "name": "orca-linux-arm64.AppImage",
+        "size": 250956185,
+        "download_count": 989,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-linux-arm64.AppImage"
+      },
+      {
+        "name": "orca-linux.AppImage",
+        "size": 249744056,
+        "download_count": 33634,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-linux.AppImage"
+      },
+      {
+        "name": "orca-macos-arm64.dmg",
+        "size": 275987541,
+        "download_count": 111705,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-macos-arm64.dmg"
+      },
+      {
+        "name": "orca-macos-arm64.dmg.blockmap",
+        "size": 286096,
+        "download_count": 13,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-macos-arm64.dmg.blockmap"
+      },
+      {
+        "name": "orca-macos-x64.dmg",
+        "size": 285426435,
+        "download_count": 102726,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-macos-x64.dmg"
+      },
+      {
+        "name": "orca-macos-x64.dmg.blockmap",
+        "size": 298995,
+        "download_count": 16,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-macos-x64.dmg.blockmap"
+      },
+      {
+        "name": "orca-sourcemaps-v1.4.245.zip",
+        "size": 15686520,
+        "download_count": 24,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-sourcemaps-v1.4.245.zip"
+      },
+      {
+        "name": "orca-windows-setup.exe",
+        "size": 207321160,
+        "download_count": 77541,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-windows-setup.exe"
+      },
+      {
+        "name": "orca-windows-setup.exe.blockmap",
+        "size": 207145,
+        "download_count": 15898,
+        "browser_download_url": "https://github.com/stablyai/orca/releases/download/v1.4.245/orca-windows-setup.exe.blockmap"
+      }
+    ]
+  },
+  "recent_issue_sample": [
+    {
+      "number": 36990,
+      "title": "Mermaid-heavy Markdown still stalls while scrolling after the CSS fix",
+      "html_url": "https://github.com/stablyai/orca/issues/36990",
+      "created_at": "2026-11-01T10:16:40Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 36988,
+      "title": "[Bug]: can't run automations manually if added project has a github remote but host has no gh executable",
+      "html_url": "https://github.com/stablyai/orca/issues/36988",
+      "created_at": "2026-11-01T10:09:52Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 36976,
+      "title": "[Bug]: Mobile Home action labels overflow or become unreadable on narrow screens",
+      "html_url": "https://github.com/stablyai/orca/issues/36976",
+      "created_at": "2026-11-01T09:48:18Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 36955,
+      "title": "[Bug]: README link check splits commas inside srcset URLs",
+      "html_url": "https://github.com/stablyai/orca/issues/36955",
+      "created_at": "2026-11-01T09:40:13Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 36973,
+      "title": "Orca Cursor hooks block all shell commands when cursor-agent starts from Git Bash (Windows)",
+      "html_url": "https://github.com/stablyai/orca/issues/36973",
+      "created_at": "2026-11-01T09:35:03Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 36950,
+      "title": "[Bug]: Opening a bare filename from the floating workspace fails with 'Access denied: path resolves outside allowed directories'",
+      "html_url": "https://github.com/stablyai/orca/issues/36950",
+      "created_at": "2026-11-01T09:31:17Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 36965,
+      "title": "[Feature]: One-click install for the orca-jira agent skill in Jira settings",
+      "html_url": "https://github.com/stablyai/orca/issues/36965",
+      "created_at": "2026-11-01T09:20:31Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 36942,
+      "title": "Mobile session header identifies the branch instead of the project",
+      "html_url": "https://github.com/stablyai/orca/issues/36942",
+      "created_at": "2026-11-01T09:18:27Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    }
+  ]
+}

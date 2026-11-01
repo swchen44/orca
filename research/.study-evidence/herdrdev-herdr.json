@@ -1,0 +1,258 @@
+{
+  "observed_at": "2026-11-01T10:17:21.039315+00:00",
+  "repository": {
+    "full_name": "herdrdev/herdr",
+    "html_url": "https://github.com/herdrdev/herdr",
+    "default_branch": "master",
+    "stargazers_count": 47216,
+    "forks_count": 3775,
+    "subscribers_count": 112,
+    "open_issues_count": 400,
+    "created_at": "2026-03-27T17:54:33Z",
+    "pushed_at": "2026-11-01T09:25:31Z",
+    "license": {
+      "key": "apache-2.0",
+      "name": "Apache License 2.0",
+      "spdx_id": "Apache-2.0",
+      "url": "https://api.github.com/licenses/apache-2.0",
+      "node_id": "MDc6TGljZW5zZTI="
+    }
+  },
+  "latest_release": {
+    "tag_name": "v0.9.5",
+    "published_at": "2026-10-14T16:07:28Z",
+    "html_url": "https://github.com/herdrdev/herdr/releases/tag/v0.9.5",
+    "assets": [
+      {
+        "name": "herdr-linux-aarch64",
+        "size": 27900752,
+        "download_count": 23119,
+        "browser_download_url": "https://github.com/herdrdev/herdr/releases/download/v0.9.5/herdr-linux-aarch64"
+      },
+      {
+        "name": "herdr-linux-x86_64",
+        "size": 30285672,
+        "download_count": 153752,
+        "browser_download_url": "https://github.com/herdrdev/herdr/releases/download/v0.9.5/herdr-linux-x86_64"
+      },
+      {
+        "name": "herdr-macos-aarch64",
+        "size": 22536176,
+        "download_count": 64537,
+        "browser_download_url": "https://github.com/herdrdev/herdr/releases/download/v0.9.5/herdr-macos-aarch64"
+      },
+      {
+        "name": "herdr-macos-x86_64",
+        "size": 24367600,
+        "download_count": 5353,
+        "browser_download_url": "https://github.com/herdrdev/herdr/releases/download/v0.9.5/herdr-macos-x86_64"
+      },
+      {
+        "name": "herdr-windows-x86_64.zip",
+        "size": 10037141,
+        "download_count": 46332,
+        "browser_download_url": "https://github.com/herdrdev/herdr/releases/download/v0.9.5/herdr-windows-x86_64.zip"
+      }
+    ]
+  },
+  "recent_issue_sample": [
+    {
+      "number": 5735,
+      "title": "OpenCode integration v12 aborts OpenCode V1 at startup: the default export is the V2 definition object",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5735",
+      "created_at": "2026-11-01T09:10:45Z",
+      "closed_at": "2026-11-01T09:13:05Z",
+      "state": "closed",
+      "comments": 2,
+      "sampled_comments": [
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5735#issuecomment-6555961128",
+          "created_at": "2026-11-01T09:13:04Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        },
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5735#issuecomment-6556051563",
+          "created_at": "2026-11-01T09:21:45Z",
+          "author_association": "NONE",
+          "user": "kathgironpe",
+          "type": "User"
+        }
+      ]
+    },
+    {
+      "number": 5733,
+      "title": "Claude SessionStart hook reads stdin before its guards, so it times out instead of reporting the session",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5733",
+      "created_at": "2026-11-01T07:27:34Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 5731,
+      "title": "Agent status stays latched after the agent process exits to shell",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5731",
+      "created_at": "2026-11-01T06:57:47Z",
+      "closed_at": "2026-11-01T07:00:22Z",
+      "state": "closed",
+      "comments": 2,
+      "sampled_comments": [
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5731#issuecomment-6554710662",
+          "created_at": "2026-11-01T07:00:22Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        },
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5731#issuecomment-6554804381",
+          "created_at": "2026-11-01T07:10:35Z",
+          "author_association": "NONE",
+          "user": "wxomi",
+          "type": "User"
+        }
+      ]
+    },
+    {
+      "number": 5730,
+      "title": "feat(api): distinguish native lifecycle state from terminal detection",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5730",
+      "created_at": "2026-11-01T06:41:40Z",
+      "closed_at": "2026-11-01T06:44:12Z",
+      "state": "closed",
+      "comments": 1,
+      "sampled_comments": [
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5730#issuecomment-6554573380",
+          "created_at": "2026-11-01T06:44:11Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        }
+      ]
+    },
+    {
+      "number": 5729,
+      "title": "Server without an agent adopts a stale herdr.sock.agent and pins every pane to herdr.sock.unavailable",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5729",
+      "created_at": "2026-11-01T04:54:28Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 5728,
+      "title": "Feature request: configurable sidebar side — ui.sidebar_position = \"left\" | \"right\"",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5728",
+      "created_at": "2026-11-01T03:06:42Z",
+      "closed_at": "2026-11-01T03:09:04Z",
+      "state": "closed",
+      "comments": 1,
+      "sampled_comments": [
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5728#issuecomment-6552701326",
+          "created_at": "2026-11-01T03:09:03Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        }
+      ]
+    },
+    {
+      "number": 5726,
+      "title": "Keybinding API for plugins: keymap introspection and prefix/key events (enables a real which-key)",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5726",
+      "created_at": "2026-10-31T21:21:29Z",
+      "closed_at": "2026-10-31T21:23:29Z",
+      "state": "closed",
+      "comments": 1,
+      "sampled_comments": [
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5726#issuecomment-6549315395",
+          "created_at": "2026-10-31T21:23:28Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        }
+      ]
+    },
+    {
+      "number": 5725,
+      "title": "Expose integration-reported session facts in native snapshots and events",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5725",
+      "created_at": "2026-10-31T19:50:10Z",
+      "closed_at": "2026-10-31T19:51:22Z",
+      "state": "closed",
+      "comments": 1,
+      "sampled_comments": [
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5725#issuecomment-6548336601",
+          "created_at": "2026-10-31T19:51:21Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        }
+      ]
+    },
+    {
+      "number": 5724,
+      "title": "Agents started from the new tab menu skip the user's shell, so PATH from ~/.bashrc (nvm etc.) is missing",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5724",
+      "created_at": "2026-10-31T19:06:10Z",
+      "closed_at": null,
+      "state": "open",
+      "comments": 0,
+      "sampled_comments": []
+    },
+    {
+      "number": 5723,
+      "title": "herdr --remote: bootstrap dialog never consumes input — bare key ignored, key+Enter silently exits the client (exit 1)",
+      "html_url": "https://github.com/herdrdev/herdr/issues/5723",
+      "created_at": "2026-10-31T18:41:10Z",
+      "closed_at": "2026-10-31T20:35:10Z",
+      "state": "closed",
+      "comments": 5,
+      "sampled_comments": [
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5723#issuecomment-6547601081",
+          "created_at": "2026-10-31T18:43:15Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        },
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5723#issuecomment-6548362420",
+          "created_at": "2026-10-31T19:53:44Z",
+          "author_association": "NONE",
+          "user": "salacoste",
+          "type": "User"
+        },
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5723#issuecomment-6548391922",
+          "created_at": "2026-10-31T19:56:29Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        },
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5723#issuecomment-6548777542",
+          "created_at": "2026-10-31T20:32:45Z",
+          "author_association": "NONE",
+          "user": "salacoste",
+          "type": "User"
+        },
+        {
+          "html_url": "https://github.com/herdrdev/herdr/issues/5723#issuecomment-6548802766",
+          "created_at": "2026-10-31T20:35:09Z",
+          "author_association": "COLLABORATOR",
+          "user": "akbash-bot",
+          "type": "User"
+        }
+      ]
+    }
+  ]
+}
