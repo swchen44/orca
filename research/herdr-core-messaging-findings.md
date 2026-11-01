@@ -1,5 +1,7 @@
 # herdr-core 訊息、等待與失敗處理查核
 
+本地checkout補查：使用者已下載 `C:/Users/swche/orca/projects/orca_study/herdr-core`，HEAD為 `27fea26efe498dce7e1555948fa75c3994fb8a9c`，查核時工作樹乾淨。與下方固定基準 `7a54c2975225a859b7e7d67302df5efc249fb9d0` 相比，僅新增一個測試清理commit，變更檔案為 `crates/herdr-core/src/runtime/tests.rs`；未變更本報告分析的runtime/API/通訊實作，因此以下結論不因這項差異而改變。此補查未執行測試或產品。
+
 查核範圍固定為官方 repository `herdrdev/herdr-core` 的 commit `7a54c2975225a859b7e7d67302df5efc249fb9d0`。原始碼與文件以 `gh api repos/herdrdev/herdr-core/contents/<path>?ref=<commit>` 取得，以下連結全部鎖定該 commit。這是靜態原始碼與既有測試查核，沒有啟動真實 Codex／Claude Code，也沒有執行測試。
 
 ## 結論
@@ -22,6 +24,8 @@ Codex／Claude Code 執行 hc CLI
 長篇結果由 child 寫檔，再用 `hc send parent "摘要與檔案路徑"` 回報。正常 `done` 的成果文字需要 child 主動回報；core 自動產生的注意通知針對 blocked、error 與 program exit。[使用手冊][manual-report]、[明確驗證 done 不自動 note 的測試][test-notes]
 
 ## 1. 官方文件的角色
+
+後續操作補查：[Codex 多機指南](herdr-codex-multimachine-guide.md)、[連線與狀態筆記](herdr-core-connection-status-notes.md)。其中新增原生 Windows 呼叫端拒絕 `--via` 的 source 證據，以及新版 Codex／Claude 原生 OSC 7501 的發行證據。使用者實際方案只用 Codex；template 本身不會安裝或啟用 agent 狀態支援。
 
 - `skills/herdr-core/SKILL.md` 只有短版入口，要求使用前讀 `hc --skill`。完整 manual 放在 `crates/herdr-core/src/SKILL.md`，官方 `AGENTS.md` 明確區分這兩者。[短版 skill][skill]、[官方規則][agents-manual]
 - `docs/commands.md` 將 `send` 定義為 paste + Enter，`--wait` 等待該 send 開始的 turn，timeout 預設取 config，否則 180 秒。[send 命令][commands-send]

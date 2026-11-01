@@ -291,3 +291,19 @@ Orca文件明確區分一般quit和Quit Completely；Windows的Quit Completely�
 Herdr正常detach為先Ctrl+B、再q；重新執行`herdr`連回同一session。pane_history預設關閉：只有需要在server重啟後回放近期terminal畫面時，才在config設`[experimental] pane_history = true`。正常live reattach不需要此選項。native agent session restore預設啟用，但需有效官方整合/原生session reference；不符合條件時只是新shell，不是原agent仍在跑。
 
 這些為官方文件查核，未在使用者工作階段實際quit/reopen測試。來源：[Orca session restore](https://github.com/stablyai/orca/blob/v1.4.245/docs/site/content/docs/model/session-restore.mdx)、[Herdr session state](https://github.com/herdrdev/herdr/blob/ee5bfb5041bb3e4a49d591c72308aae3c81ecdde/docs/versions/0.9.5/website/src/content/docs/session-state.mdx)。
+
+## 10. 除SSH之外的連線方式
+
+| 產品 | 同機 | 跨機內建與擴充 |
+| --- | --- | --- |
+| Herdr TUI | Unix socket／Windows named pipe | 查核的saved machine endpoint為Local或SSH；未找到可直接指定HTTP/WebSocket server的官方遠端入口 |
+| Herdr Core | Unix socket／Windows named pipe | 預設SSH；Unix 呼叫端另有 `hc machine add --via <command>` 自訂 connection command，需原樣雙向傳遞 stdin/stdout 並在目的地主機執行 core 連線命令；查核版本的原生 Windows 呼叫端會拒絕 `--via` |
+| Orca | Unix socket／Windows named pipe runtime RPC | SSH workspace/execution host；或直接配對Remote Orca Server，透過WebSocket RPC，不要求目標主機一定開SSH Server |
+
+Core 的 `--via` 是 Unix 呼叫端可用的 transport 擴充接口，不是預設 HTTP/WS listener，也不是任意檔案通道。補查 `27fea26` 的 `machines::check_target`，`via` 分支會因 `cfg!(windows)` 直接拒絕；安裝 Git Bash 不會解除這個限制。官方提供的雲端 remote-exec 與 Vercel Sandbox helper 例子不能直接當成原生 Windows 免 SSH 方案。若另一台 Windows 禁用 SSH，需另做 sidecar＋App mod，或正式新增 Windows transport 接點；不能只改 `--via` 設定。[Windows via 判斷](https://github.com/herdrdev/herdr-core/blob/27fea26efe498dce7e1555948fa75c3994fb8a9c/crates/herdr-core/src/machines.rs#L121-L130)
+
+Codex-only 的本機＋SSH Linux 操作、App 顯示條件及免 SSH Windows 的兩種方案見 [多機操作指南](herdr-codex-multimachine-guide.md)；[連線／狀態補查](herdr-core-connection-status-notes.md) 另列原生 OSC 7501 版本證據。`herdr-app status` 是視窗狀態，agent 狀態與輸出需用 `hc get/read`。
+
+Orca Remote Server可以由桌面App分享runtime，也可用`orca serve`啟動；client在公司允許的LAN/VPN路由上配對連線。Tailscale/WireGuard提供網路路徑，不是另一種agent訊息協定；SSH forwarding可用來承載該連線，卻不是Direct Remote Server的必要條件。直接配對時，被控Windows要有Orca runtime與允許的runtime連線，不必僅為此安裝sshd。
+
+三者的即時原生方式都不能直接替代本案FTP／itcp bridge；Core`--via`需要持續雙向byte stream，不能把1s/5s檔案polling當成相同保證。來源：[TUI endpoint](https://github.com/herdrdev/herdr/blob/ee5bfb5041bb3e4a49d591c72308aae3c81ecdde/src/client/endpoint.rs#L73)、[Core自訂connection](https://github.com/herdrdev/herdr-core/blob/7a54c2975225a859b7e7d67302df5efc249fb9d0/docs/machines.md#use-another-way-in)、[Orca Remote Servers](https://github.com/stablyai/orca/blob/v1.4.245/docs/site/content/docs/remote-servers.mdx)。

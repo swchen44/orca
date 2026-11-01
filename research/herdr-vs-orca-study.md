@@ -44,6 +44,8 @@ App 的 mods 是可信任的 JavaScript 程式，官方明示不是 sandboxed ex
 
 ### 版本及研究範圍
 
+使用者下載後的本地核對：`C:/Users/swche/orca/projects/orca_study/herdr-app` 為下列相同App commit；`herdr-core` 為 `27fea26efe498dce7e1555948fa75c3994fb8a9c`，比下列Core基準只多一個runtime測試清理commit，通訊實作未變。兩份checkout工作樹乾淨。App的 `vendor/ghostty` submodule 尚未初始化，因此不能把目前checkout描述為已完整備齊的離線編譯包；本次沒有編譯。
+
 - 本地 `./herdr` 實際找到的位置是 `C:/Users/swche/orca/projects/orca_study/herdr`，origin canonical，HEAD `ee5bfb5041bb3e4a49d591c72308aae3c81ecdde`，2026-10-29，Cargo 版本 0.9.5。未修改 checkout。
 - TUI 以該 commit 的程式碼與 `docs/versions/0.9.5/` 查核；不把 `docs/next` 當已發布能力。版本文件可能在發布後修訂，仍需對公司實際 binary 測試。
 - App 固定 `1581a587919dddd6f1efd5f78eb542c4b2b02cb5`，Cargo 0.1.11；Core 固定 `7a54c2975225a859b7e7d67302df5efc249fb9d0`。初步以官方 README、API、machine 文件及 manifest 查核；後續另對Core的send/wait/notes原始碼與既有測試作專題查核，見 [Core messaging findings](herdr-core-messaging-findings.md)。App GUI仍未全量稽核。
@@ -75,7 +77,9 @@ herdr --machine internal-linux agent read linux-claude --source recent-unwrapped
 
 `--machine` 一次選一個遠端 session，CLI 不需要 TUI 開著；但也不會經另一個 TUI 轉送。agent 名稱和 pane ID 以 server 為範圍。Windows TUI 保存的 profile 不會自動出現在 Linux agent 的 home 裡。跨機指揮的呼叫端自己要有路由與 SSH 權限。
 
-Core 則使用另一組命令，例如 `hc machine add user@host --name box`、`hc run --on box ...`，原生支援子 agent 關係與回報；不能將此能力說成 TUI 的 `herdr agent prompt` 本來就有。Core templates 是可配置的命令與角色，狀態不是靠偵測 Claude 畫面猜測。
+Core 則使用另一組命令，例如 `hc machine add user@host --name box`、`hc run --on box ...`，原生支援子 agent 關係與回報；不能將此能力說成 TUI 的 `herdr agent prompt` 本來就有。Core templates 是可配置的命令與角色，狀態來自 OSC 7501 程式回報，不能把建立 template 當成已配置狀態整合。
+
+後續需求已確認使用 Codex，另一台 Windows 禁用 SSH、可用通道待定；本機＋SSH Linux 可先用原生流程。補查發現 Core `27fea26` 的 `--via` 會拒絕原生 Windows 呼叫端，並非所有平台都能直接用自訂 connection command。完整流程、原生 Codex OSC 7501 版本與 App 收納條件見 [Codex 多機操作指南](herdr-codex-multimachine-guide.md)、[連線／狀態補查](herdr-core-connection-status-notes.md)。
 
 依據：[TUI machines](https://github.com/herdrdev/herdr/blob/ee5bfb5041bb3e4a49d591c72308aae3c81ecdde/docs/versions/0.9.5/website/src/content/docs/connecting-machines.mdx)、[TUI Windows](https://github.com/herdrdev/herdr/blob/ee5bfb5041bb3e4a49d591c72308aae3c81ecdde/docs/versions/0.9.5/website/src/content/docs/windows-beta.mdx)、[Core machines](https://github.com/herdrdev/herdr-core/blob/7a54c2975225a859b7e7d67302df5efc249fb9d0/docs/machines.md)、[Orca 原生架構](orca-native-architecture.md)。
 

@@ -23,6 +23,10 @@
 | [Codex／Claude通訊專題](agent-communication-comparison.md) | CLI/API/PTY/mailbox分層、錯誤與重試、Orca 1.4.245 structured/terminal模式、worker保留及關閉UI後的恢復 |
 | [Herdr TUI原始碼查核](herdr-source-findings.md) | 固定commit的SSH routing、NDJSON/bincode、agent lifecycle與ACK界線 |
 | [Herdr Core messaging查核](herdr-core-messaging-findings.md) | 固定commit的hc send、parent/child、turn wait、notes/outbox、重啟與去重限制 |
+| [Codex 多機操作指南](herdr-codex-multimachine-guide.md) | 使用者操作入口：本機 Codex coordinator、SSH Linux workers、App 查看／補充指令、免 SSH Windows 兩種待定方案；含架構、sequence、flowchart |
+| [Core 連線與狀態補查](herdr-core-connection-status-notes.md) | Windows 拒絕 --via、named pipe 與連線限制、Codex 原生 OSC 7501、App 收納條件與固定來源 |
+
+2026-11-02 補充：本次 Herdr 操作流程只使用 Codex。另一台 Windows 禁止 SSH、允許的其他通道尚未確認；「更新」指在 App 看狀態後補充 agent 工作指令。先完成本機＋SSH Linux 原生流程；免 SSH Windows 分為可直連時的 sidecar／transport 適配，以及只允許共享資料夾／FTP／itcp 的非同步 bridge。這些擴充尚未實作，不能視為既有功能；原生 Windows Core 的 --via 在固定版本會拒絕。不要將歷史 Codex／Claude 範例當成使用者另有 Claude 付費方案，也不因換 runtime 自動滿足既有可靠交接規格。
 
 效能尚無同條件實測；GitHub stars/downloads不是活躍使用者數。資料快照位於`.study-evidence/`，可用[重查腳本](collect-comparison-evidence.py)產生新觀察；重跑會取得當時最新資料，不能覆蓋原日期結論後仍宣稱同一份快照。
 
