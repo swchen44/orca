@@ -263,3 +263,59 @@ Orca 側邊欄（示意）
 
 上述為開啟與組織建議；本次只檢查路徑和 Git 狀態，沒有在 Orca 新增 Project、建立群組或 worktree，也沒有移動或修改這些 repo。
 
+## Android Repo manifest：多個 Git repo 組成一套系統
+
+Android 的 `repo` 工具根據 manifest XML 管理多個 Git repository；整個 Android source root 一般不是單一 Git repo。[來源：Android Repo 文件](https://source.android.com/docs/setup/reference/repo)、[下載原始碼文件](https://source.android.com/docs/setup/download)
+
+```text
+/work/android-main/                # 一套完整 Android source tree
+├── .repo/                        # repo 工具及 manifest 管理資料
+├── build/                        # 一個 Git project，實際依 manifest
+├── frameworks/base/              # 一個 Git project
+├── packages/apps/Settings/       # 一個 Git project
+├── device/company/product/       # 此處為示意，實際依公司 manifest
+└── out/                          # build 輸出示意
+```
+
+`frameworks/base` 可以有自己的 Git worktree，但單一 worktree 只包含那個 Git repo，不含其他 projects、`.repo` 或整套 Android build 環境。Orca 的 Folder Workspace 可以以完整 source root 為範圍，但不會自動隔離整棵樹。[來源：Orca Worktrees](https://www.onorca.dev/docs/model/worktrees)
+
+### 做法 A：一套 source tree，直接修改並 build
+
+適合個人研究或不需要平行隔離的任務：
+
+1. 在公司支援的 Linux build host 準備完整 source tree；若已同步好，沿用現有目錄。若需新建，按照公司文件在空目錄執行 `repo init -u <manifest-repo-url> -b <manifest-branch> -m <manifest.xml>`，再執行 `repo sync`。URL、branch、XML 名稱與認證依公司設定；先確認磁碟容量與存取權限。
+2. 在可存取該 host 的 Orca 中，將 Android source root 加為資料夾或匯入 Project Group；若畫面支援群組，在群組上選 `+` 建立 Folder Workspace。大專案的 repo 掃描結果依版本及主機狀況確認。
+3. 在 Folder Workspace 的終端機確認目前位置是 `/work/android-main`，使用 agent 修改需要的 repositories。這會修改該 source tree 的 checkout。
+4. 依公司提供的 build command 執行，並分別檢查和提交每個修改過的 Git repo。標準 AOSP 例子是 `source build/envsetup.sh`、`lunch <公司指定的target>`、`m`，公司流程可能不同。[來源：AOSP build 文件](https://source.android.com/docs/setup/start)
+
+### 做法 B：每個任務一套完整 source tree，再整體 build
+
+適合需要隔離或平行 build 的任務。這是**多個 Repo client**，不是一個跨越所有 repo 的 Git worktree：
+
+```text
+/work/android-main/                # Repo client A：原本的完整 source tree
+├── .repo/
+├── frameworks/base/
+└── out/
+
+/work/android-feature-a/           # Repo client B：另一套完整 source tree
+├── .repo/
+├── frameworks/base/               # 自己的 checkout
+└── out/                           # 獨立 build 輸出示意
+```
+
+1. 在 Linux build host 的另一個空目錄，依公司流程執行 `repo init` 和 `repo sync`，建立第二套完整 source tree。選用公司固定的 manifest revision；同名 manifest branch 在不同時間可能指向不同內容。
+2. 如果要重現 A 的版本，先在 A 檢查乾淨狀態，使用 `repo manifest -r -o <snapshot.xml>` 記錄各 project commit，並透過公司核准的 manifest 流程讓 B 同步對應版本，再核對。這份 snapshot 記錄 commit，不包含尚未 commit 的修改，也不能保證包含 build 所有外部輸入。
+3. 在 Orca 分別開啟 A 和 B 的 source root，為 B 使用 Folder Workspace。若畫面允許，為它取任務名稱；確認 agent 與終端機的路徑都位於 B。
+4. 在 B 修改與 build；確認公司 build 設定的 `OUT_DIR`、快取及其他產物不與 A 衝突。完成後分別 review、commit／上傳各 Git repo 的修改。
+
+第二套 source tree 與 build output 可能需要大量磁碟；不要把兩次 build 指向同一個輸出目錄作為隔離方案。[來源：Android 下載文件](https://source.android.com/docs/setup/download)、[Repo manifest 指令參考](https://source.android.com/docs/setup/reference/repo)
+
+### 單個 repo 的 Orca worktree 如何用？
+
+若只想研究 `frameworks/base` 的程式或獨立測試，可以將該 repo 加入 Orca 並建立 worktree，例如 `/work/orca-workspaces/base/investigate`。**從 `/work/android-main` 執行完整 build 時，預設讀取的是 `/work/android-main/frameworks/base`，不會自動讀取另一位置的 worktree。**
+
+如要讓整體 build 包含 worktree 的修改，先在 worktree commit、review，再依公司 Git 工作流程將 commit 帶入「實際用來 build」的 source tree 中對應 project，並確認該 checkout 的狀態與版本。不要直接用 symlink、手動替換 `.repo` checkout 或假設 `repo sync` 會自動整合 Orca worktree；這些做法需額外驗證公司 Repo 流程。
+
+Repo 的 source tree 預設可能有 detached HEAD；使用前應依公司流程確認版本與 branch，也不要在有未提交修改時隨意執行會變更 checkout 的同步操作。本節是依官方機制提出的工作流程示例，尚未在特定 Android 專案或公司 build 環境實測。
+
