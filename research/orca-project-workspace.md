@@ -1,6 +1,39 @@
 # Orca 的 Project、Workspace 與 Folder Workspace
 
-查核日期：2026-11-01。本文的 Orca 指 [stablyai/orca](https://github.com/stablyai/orca) 的 AI 開發工具；同名的 orca-desktop.com 是另一個產品，其 workspace 文件不適用於此。
+最後整理：2026-11-02。本文的 Orca 指 [stablyai/orca](https://github.com/stablyai/orca) 的 AI 開發工具；同名的 orca-desktop.com 是另一個產品，其 workspace 文件不適用於此。本文記錄討論中的設定與案例，功能與介面以使用的 Orca 版本為準。
+
+## 公司內網：安裝、API token 與功能限制
+
+本節假設公司允許 Git clone、npm 與已核准的 Electron runtime，且 Codex、Claude Code 已能使用公司提供的 API token 或 gateway。實際端點與權限依公司環境而定。
+
+### 可以使用什麼？
+
+- Orca 管理終端機、檔案與 Git worktree；在桌面程式與本機 Git 正常運作的前提下，可以處理本機 repository。
+- Orca 可啟動已安裝的 `codex` 與 `claude` CLI。若 agent 在 Orca 啟動後能取得原有的 API 憑證與 endpoint 設定，也能沿用公司的 API；Orca 本身不是模型，也不要求為此另外購買 Orca 的 agent 訂閱。API 授權、帳單與可用模型仍由公司和供應商決定。[來源：Codex in Orca](https://www.onorca.dev/docs/agents/codex)、[Claude Code in Orca](https://www.onorca.dev/docs/agents/claude-code)
+- 內網網站或 localhost 可以在瀏覽器功能中使用；GitHub PR／issues、Linear、手機 relay、自動更新等功能仍各自需要能連到相應服務。可以 `git clone` 不代表其他 API 或下載來源一定可用。[來源：Orca 功能說明](https://github.com/stablyai/orca)
+
+建議先確認現有 CLI 能在終端機正常使用，再從可取得同一組設定的環境啟動 Orca，於新工作區各測試一次。必要時檢查 **Settings → Agents** 的執行路徑與環境設定，以及 Chat UI 的 shell environment 設定；避免將 API token 寫入文件或提交到 Git。API token 環境下的帳號切換與用量顯示，需依實際版本及公司 gateway 實測。[來源：設定參考](https://www.onorca.dev/docs/settings)、[Chat UI](https://www.onorca.dev/docs/agents/native-chat)
+
+### 從原始碼啟動
+
+Windows 上可以在已具備 Git、Node.js 與 pnpm 的環境嘗試：
+
+```powershell
+git clone https://github.com/stablyai/orca.git
+cd orca
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+Node.js 和 pnpm 版本應以所選 Orca 版本的 `package.json` 與官方開發文件為準。安裝時除了 npm registry，還可能需要 GitHub 相依套件、Electron runtime 與 Windows 原生模組建置工具；僅有 `npm` 命令或能 clone 不代表所有相依套件都能取得。這個流程尚未在公司內網實測。[來源：官方開發文件](https://github.com/stablyai/orca/blob/main/.github/CONTRIBUTING.md)、[套件設定](https://github.com/stablyai/orca/blob/main/package.json)
+
+### 不含 `.exe` 的 npm package
+
+可以評估將 Orca 的應用程式資源與相容原生模組封裝成不含 `.exe` 的內部 npm package，並讓自訂啟動腳本呼叫公司**預先核准及安裝**的 Windows x64 Electron runtime。套件仍可能包含 `.node` 或 DLL 等原生 binary，需依公司規定管理。
+
+這是需自行開發與驗證的方案，**不是已驗證可用的標準安裝方式**。必須固定 Orca 與 Electron 版本、準備相容原生模組及完整程式資源，並處理 Orca 現有安裝流程對 Electron 的檢查或下載；不可假設指定任意既有 Electron 路徑就能啟動。Windows 桌面版執行時仍需要已核准的 Electron 執行檔。[來源：Orca Electron 安裝程式](https://github.com/stablyai/orca/blob/main/config/scripts/install-electron-package-binary.mjs)
+
+Orca 文件指出 agent 啟動預設可能使用略過權限確認的參數；公司使用時可檢查 **Settings → Agents → Agent Permissions**，依需要選 Manual，並確認個別 agent 的自訂啟動參數。[來源：Supported agents](https://www.onorca.dev/docs/agents/supported)
 
 ## 概念
 
