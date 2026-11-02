@@ -352,3 +352,41 @@ Android 的 `repo` 工具根據 manifest XML 管理多個 Git repository；整�
 
 Repo 的 source tree 預設可能有 detached HEAD；使用前應依公司流程確認版本與 branch，也不要在有未提交修改時隨意執行會變更 checkout 的同步操作。本節是依官方機制提出的工作流程示例，尚未在特定 Android 專案或公司 build 環境實測。
 
+### 進階範例：Folder Workspace 與多個 Git worktree 並存
+
+以下是教學示意：一項「公司裝置管理模式」需求，同時修改系統 API、設定頁及產品預設值，最後 build Android image。
+
+```text
+Orca Project Group：android-main
+│
+├── Folder Workspace：整合與 build
+│   └── /work/android-main/                         # 完整 source tree
+├── Project：frameworks/base
+│   └── Workspace：device-mode-framework            # 只有 base repo 的 worktree
+├── Project：packages/apps/Settings
+│   └── Workspace：device-mode-settings             # 只有 Settings repo 的 worktree
+└── Project：device/company/product
+    └── Workspace：device-mode-product              # 只有 product repo 的 worktree
+```
+
+Folder Workspace 與 Git worktree 可以並存，但前者不自動建立或整合各 repo 的 worktree。從 `/work/android-main` build 只會讀取這棵 source tree 實際包含的檔案，除非公司的 build 流程另有設定，不會自動讀取外部 worktree。[來源：Orca Worktrees](https://www.onorca.dev/docs/model/worktrees)
+
+#### 操作步驟
+
+1. **準備整合目錄**：在公司 Linux build host 使用已有的完整 Android source tree；在 Orca 加入 source root。若版本與掃描結果支援，可匯入相關 repos 成 Project Group，並建立 Folder Workspace「整合與 build」。確認 `repo status`、manifest revision 與現有修改；此範例假設 root 是 `/work/android-main`。
+2. **確認各 repo 的起點**：例如在 build host 執行 `git -C /work/android-main/frameworks/base rev-parse HEAD`，也對 Settings 和 product 各自查詢。branch 同名不代表 commit 相同。
+3. **分別建立 worktree**：在 Orca 的各 Git Project 建立 `device-mode-framework`、`device-mode-settings`、`device-mode-product`。各自選擇對應 source checkout 實際使用的 commit 作為起始 ref，並確認 agent 的工作目錄。若掃描未匯入 repo，可以另行加入該 repo。先對單一 repo 測試公司的 Repo/Git 版本與 worktree 是否相容。
+4. **分工、協調介面**：例如 framework agent 修改系統 API，Settings agent 修改設定頁，product agent 修改預設值；跨 repo 的 API 介面需要彼此協調。每個 agent 在自己的 worktree review、執行可獨立進行的檢查並依公司流程 commit。
+5. **整合到 build tree**：記錄各 repo 的 commit，回到 `/work/android-main`，確認各目標 checkout 的 branch 與未提交修改，再依公司 Git/Gerrit 流程分別帶入對應 repo。若公司流程允許，可以在對應 repo 使用 `git cherry-pick <commit>`；這會改動目標 checkout，需先確認狀態。Android `repo start` 可為指定 projects 從 manifest revision 建立開發 branch；依公司流程決定是否使用。[來源：Android Repo start](https://source.android.com/docs/setup/reference/repo)
+6. **整體 build**：在 Folder Workspace 終端機確認 `pwd` 指向 `/work/android-main`，再執行公司 build command。標準 AOSP 流程使用 `source build/envsetup.sh`、`lunch <target>`、`m`；實際 target 與流程依公司環境。[來源：AOSP build 文件](https://source.android.com/docs/setup/start)
+7. **記錄與測試**：記錄各 repo commit、build target、命令、產物與測試結果。可用 `repo manifest -r -o /work/android-build-manifest.xml` 記錄 project revisions；未提交的修改與其他外部 build 輸入不會因此完整記錄。
+
+| 需求 | 選擇 |
+| --- | --- |
+| 在完整 Android tree 查閱及 build | Folder Workspace |
+| 隔離修改單一 repo | 該 Git Project 的 worktree |
+| 多 repo 的 worktree 修改產生同一份 image | 將各 commit 整合進實際 build 的完整 tree，再 build |
+| 兩組 agent 平行產生完整 image | 兩套完整 Repo client，確保 source 與 build output 各自隔離 |
+
+本節尚未在特定公司 Android manifest、Repo 版本或 build 環境實測；Repo checkout 可能有 detached HEAD，也可能有公司特定 hooks 或相容性限制。避免直接用 symlink 替換 Repo 管理的 checkout；工作目錄隔離也不等於作業系統安全沙箱。
+
