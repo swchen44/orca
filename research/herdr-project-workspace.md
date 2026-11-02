@@ -20,6 +20,21 @@
 
 **共通原則：開 Workspace／Space 不會複製程式碼；建立 Git worktree 才會產生該 repo 的另一份工作目錄。** 多個終端機指向同一資料夾，仍會修改相同檔案。
 
+### 「隔離修改」和 worktree 的關係
+
+**隔離修改是目的，Git worktree 是方法。** Codex 和 Claude 若在同一個目錄工作，會修改同一份檔案；就算開兩個不同名稱的 Workspace／Space，也不會隔離。讓它們分別在不同 worktree 工作，才有各自的檔案和暫存狀態。
+
+**worktree 內也有 source。** 預設會 checkout 所選 commit 的受追蹤檔案；若兩個 worktree 從同一 commit 開始，source 起初相同，但不是讓兩邊編輯同一個實體工作檔。之後修改一邊，不會自動改動另一邊。[Git worktree 文件][G1]
+
+| 內容 | worktree 之間的關係 |
+| --- | --- |
+| 工作目錄中的 source 檔案 | 各自一份；修改不會自動同步。 |
+| Git 歷史、objects、一般 branch refs | 共用同一個 repository 的資料。 |
+| HEAD、index／暫存狀態 | 各自管理。 |
+| 原目錄尚未 commit 的修改、未追蹤檔、被忽略的 `.env`、依賴和 build 產物 | 不會因建立 worktree 就自動複製；依專案另行準備。 |
+
+所以 worktree 不需要像獨立 clone 一樣各自保存一整套 Git object database，但會占用自己的 checkout 檔案空間。資料庫、指定到同一位置的 build output 等仍可能共用；worktree 不提供程序或權限沙箱。
+
 ## 案例 1：開啟一個既有 Git repo
 
 需求：研究 `D:\git\clinic_bookmarklet`，使用 Codex 或 Claude。
@@ -118,6 +133,47 @@ herdr-app do space.new --folder 'D:\git\clinic-b'
 | 上例相對路徑以 Git 的工作目錄解析。 | 不要把這個 Git 行為誤認成兩代都有「repo 相對 root 設定」。 |
 
 Git 的連結靠 checkout 的 `.git` 指標與共用 Git 管理資料，整個目錄不必是 symlink／junction。objects 和一般 refs 共用；工作目錄、HEAD、index 分開。可用 `git worktree list` 核對。[Git worktree 文件][G1]
+
+### Worktree 可以放在原 repo 裡面嗎？
+
+**可以放在子目錄；不能讓新 worktree 和原 checkout 使用完全相同的目錄。** 例如：
+
+```text
+D:\git\clinic_bookmarklet\          # 原始 checkout
+├── .git\                         # 共用 Git 管理資料
+├── bookmarklet.js                # 原始 checkout 的 source
+└── .worktrees\
+    ├── fix-a\                    # branch fix-a 的獨立 checkout
+    │   ├── .git                  # Git 指標檔
+    │   └── bookmarklet.js         # fix-a 自己的 source
+    └── fix-b\                    # branch fix-b 的獨立 checkout
+        ├── .git
+        └── bookmarklet.js
+```
+
+以新 branch／空路徑建立；以下命令僅示範，未執行：
+
+**第一代：** CLI 可直接指定子目錄。
+
+```powershell
+herdr worktree create --cwd 'D:\git\clinic_bookmarklet' --branch nested-a --base master --path 'D:\git\clinic_bookmarklet\.worktrees\nested-a'
+```
+
+**第二代：** 研究版本內建 mod 的 root 固定；要用這個布局，先用 Git 建立，再開 Space。
+
+```powershell
+git -C 'D:\git\clinic_bookmarklet' worktree add -b nested-b '.worktrees/nested-b' master
+herdr-app do space.new --folder 'D:\git\clinic_bookmarklet\.worktrees\nested-b'
+```
+
+| 放在哪裡 | Git 隔離效果 | 實際差別 |
+| --- | --- | --- |
+| 原 repo 子目錄 `.worktrees\fix-a` | 仍是獨立 worktree。 | 集中在同一棵資料夾；父目錄的搜尋、agent 或 build 掃描可能也讀到這份 source。 |
+| 外部目錄 `D:\worktrees\clinic-a` | 同樣是獨立 worktree。 | source 分開放，較容易避免父專案遞迴掃描時混入其他 checkout。 |
+
+若採子目錄布局，建議將 `/.worktrees/` 加入原 repo 的 `.gitignore`（團隊共用規則），或主 checkout 的 `.git/info/exclude`（本機規則），避免父 checkout 把它當成待加入的內容。ignore 規則只影響 Git，不保證所有搜尋／build 工具或 agent 都會略過它；這些工具要另外設定。[Git ignore 文件][G2]
+
+**放在裡面仍可隔離，但工具掃描範圍更容易重疊。** 這也是案例 2 預設用外部路徑示範的原因；兩種布局都不會讓 worktree 的修改自動合併回原 checkout。
 
 ## 案例 4：研究父資料夾，底下有多個 repo
 
@@ -339,3 +395,5 @@ herdr-app do space.new --name android-integration --folder /work/android-main
 [G1]: https://git-scm.com/docs/git-worktree
 [A1]: https://source.android.com/docs/setup/reference/repo
 [A2]: https://source.android.com/docs/setup/start
+
+[G2]: https://git-scm.com/docs/gitignore
