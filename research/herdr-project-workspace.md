@@ -12,6 +12,18 @@
 
 這三個目錄不是同一個版本的三個隨意拆分模組。不要把第一代 `herdr workspace ...` 命令、第二代 `herdr-app do ...` 命令及 `hc` 混用。以下操作案例主要使用 **第二代 app + core**；第一代差異見後文。研究版本是本機 snapshot，並非宣稱最新遠端功能。[H1][H2][H3]
 
+### 閱讀前先選擇使用的代別
+
+原始碼 `herdr-app/AGENTS.md` 明確使用「Herdr 2 desktop app」；本文的第一代／第二代指這兩套產品架構，不等同於 release 的 SemVer 必然是 `1.x`／`2.x`。僅憑下載版本號或桌面顯示的 Herdr 名稱，不能確定正在使用哪套。[H3]
+
+| 你使用的執行指令 | 對應架構 | 本文案例位置 |
+| --- | --- | --- |
+| `herdr workspace ...`、`herdr worktree ...` | 第一代 `herdr` | 第 10 節：第一代對應案例與限制 |
+| `herdr-app do space.new ...` | 第二代桌面 `herdr-app` | **第 3～9 節全部是第二代案例** |
+| `hc ...`／`herdr-core ...` | 第二代的 terminal runtime | 與 app 配合；core 本身不提供 app 的 Space UI／worktree mod |
+
+第二代案例由第 3 節直接開 repo，一路到第 9 節 Android 多 agent 整合 build。第一代指令另列第 10 節，不應拿來當成第二代 `herdr-app` 的指令。
+
 ## 2. 概念與對照
 
 | 概念 | 第二代 Herdr 的意思 | 是否自動建立 Git 分支或隔離目錄？ |
@@ -26,7 +38,7 @@
 
 **名稱相近不代表隔離方式相同。** 對同一資料夾開兩個 Space，兩個 agent 修改的是同一份檔案；對同一 repo 建立兩個 Git worktree，才會有兩份工作目錄。Git worktree 仍不是安全沙箱。
 
-## 3. 最簡單：直接開既有 Git repo
+## 3. 第二代案例一：直接開既有 Git repo
 
 需求：`D:\git\clinic_bookmarklet` 已是 Git repo，想讀程式或讓 agent 修改。
 
@@ -51,7 +63,7 @@ Herdr app
 
 只開 Space 不會搬移 repo、不會 clone，也不會自動新增 branch。直接修改會改到原 checkout。給 Space 固定名稱有利於辨識；未命名時則依當前 folder／Git 資訊產生名稱。側邊欄的 worktree 分組依 Git common-dir 與是否存在 main checkout Space 判斷；目前實作沒有以「是否命名」作為分組條件。[H5][H7]
 
-## 4. 再進一步：同一 repo 的兩個獨立任務
+## 4. 第二代案例二：同一 repo 的兩個獨立任務
 
 需求：Codex 修正書籤，Claude 試另一種寫法，互相比較。
 
@@ -86,7 +98,7 @@ clinic_bookmarklet
 
 原碼的 root 是常數，不應照抄第一代的 `[worktrees] directory` 或 Orca 的 Workspace Directory 設定，宣稱可以改變第二代 shipped mod 的路徑。此版本的 New worktree 也沒有獨立的 base ref 欄位。[H6]
 
-## 5. 想使用絕對或相對路徑
+## 5. 第二代案例三：使用絕對或相對路徑
 
 若要自行指定位置與起點，可以使用一般 Git 建立 worktree，再讓 Herdr 開該目錄。以下命令有建立 branch 和資料夾的副作用，請選擇新名稱並確認起點；本文未執行：
 
@@ -104,7 +116,7 @@ herdr-app do space.new --folder 'D:\git\clinic-b'
 
 Git worktree 透過 checkout 中的 `.git` 指標、common Git directory 和管理資料連結；整個資料夾不需要變成 Windows symlink／junction。objects 和一般 refs 共用，工作目錄、HEAD、index 分開。可執行 `git worktree list` 及 `git rev-parse --git-common-dir` 核對。[G1]
 
-## 6. 研究父資料夾：`D:\git\yazi_work`
+## 6. 第二代案例四：研究父資料夾 `D:\git\yazi_work`
 
 假設目前是普通父資料夾，底下含 `yazi_intranet`，以後可能再放其他 Git repo：
 
@@ -130,7 +142,7 @@ herdr-app do space.new --folder 'D:\git\yazi_work\yazi_intranet'
 
 兩個普通 Space 即使都叫不同的研究主題，只要指向同一個資料夾，仍會修改同一份檔案。
 
-## 7. 多 repo 請假系統
+## 7. 第二代案例五：多 repo 請假系統
 
 ```text
 D:\company\leave-system\
@@ -147,7 +159,7 @@ D:\company\leave-system\
 
 這是依 Space 和 Git worktree 實作推導的使用方式；並非原碼中專用的「跨 repo feature」功能。[H5][H6][G1]
 
-## 8. Android：一套 source tree 進行研究和 build
+## 8. 第二代案例六：Android 單一 source tree 研究和 build
 
 Android Repo 的 manifest XML 配合 `repo init`、`repo sync` 建立完整 source tree，source root 通常不是單一 Git repo。這裡是 Repo 的 manifest，不是 Android app 的 `AndroidManifest.xml`。[A1]
 
@@ -172,7 +184,7 @@ herdr-app do space.new --name android-integration --machine android-build --fold
 
 此 Space 的角色接近 Orca 的 Folder Workspace：都可將終端機放在完整 source root，直接修改這棵 tree。建立第二個 Space 指向同一路徑不會隔離 Android source 或 build output。
 
-## 9. Android 進階：多 agent、單 repo worktree、整合 image
+## 9. 第二代案例七：Android 多 agent、單 repo worktree、整合 image
 
 需求：新增公司裝置模式，三個 agent 分別改系統 API、Settings 和產品預設值。
 
@@ -193,7 +205,7 @@ Herdr app（示意）
 
 單個 repo worktree 沒有完整 build tree。外部 worktree 的修改，完整 build 不會自動採用；除非公司自行實作並驗證其他 source mapping／build 機制。若要兩組 agents 同時產生兩套 image，使用兩套完整 Repo client 和各自的輸出目錄，分別開 Space。這是兩套完整 tree，並非一個涵蓋全部 projects 的 Git worktree。[G1][A1]
 
-## 10. 第一代 Herdr 與使用者討論怎麼看？
+## 10. 第一代對應案例，以及使用者討論的查證
 
 第一代使用 workspace／tab／pane 和 `herdr worktree ...`；原碼中有 `[worktrees] directory` 設定及 worktree 建立／開啟／移除流程。不要把它的設定直接套用到第二代。第一代也不是「建立 workspace 就自動 clone repo」；建立工作容器與建立 Git checkout 是不同操作。[H1][H8]
 
