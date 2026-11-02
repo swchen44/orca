@@ -141,10 +141,27 @@ herdr workspace create --cwd 'D:\git\yazi_work' --label yazi-study --focus
 herdr-app do space.new --name yazi-study --folder 'D:\git\yazi_work'
 ```
 
-| 相同觀念 | 差異 |
-| --- | --- |
-| 普通資料夾也能作為工作起點，不必先變成 Git repo。 | 第一代 Git discovery 從 cwd 向父目錄找 Git repo；第二代 mod 也從來源 folder 查 Git。 |
-| agent 可跨子目錄閱讀，但父資料夾不會因此變成一個 Git repo。 | 第二代側邊欄的 worktree 分組根據 common-dir 等資訊，不是掃描任意父資料夾並匯入所有子 repo。 |
+**兩代都能開普通資料夾，agent 也可以閱讀裡面的子目錄。** 但要區分兩種「找 repo」：
+
+| 要回答的問題 | 查找方向 | 例子 |
+| --- | --- | --- |
+| 我目前在哪個 Git repo 裡？ | 檢查目前目錄，再往上找。 | 在 `yazi_intranet\src` 工作，找到上層 `yazi_intranet\.git`，便知道自己屬於 `yazi_intranet`。 |
+| 這個資料夾底下有哪些 Git repos？ | 往下掃描子目錄。 | 從 `yazi_work` 列出 `yazi_intranet`、`other-repo` 等 repos。 |
+
+第一代與第二代這裡的 Git 辨識實作都在回答**第一個問題**，沒有順便往下批次匯入所有子 repo。[H10][H6][H7]
+
+```text
+D:\git\yazi_work\                  ← 在此開工作容器
+└── yazi_intranet\
+    ├── .git\                      ← 此 repo 的 Git 資料
+    └── src\                       ← 假設在這個子目錄工作
+```
+
+- 從 `src` 開始：先查自己，再往上找到 `yazi_intranet`，可辨識 repo。
+- 從 `yazi_work` 開始：查自己及上層；假設上層也沒有 Git repo，會判定目前不在 Git repo 裡。它不會因此往下找 `yazi_intranet`。工作容器仍可正常開啟。
+- 若要管理子 repo 的 branch 或建立 worktree，直接開 `yazi_intranet`；跨 repo 閱讀則可繼續使用父資料夾的工作容器。
+
+第二代側邊欄的 `common-dir` 分組則是另一件事：它用「共用 Git 資料目錄是否相同」判斷已開的 checkout 是否屬於同一 repo，再安排 worktree 分組；不是用共同的磁碟父資料夾來分組。[H7]
 
 要隔離修改 `yazi_intranet`，將兩代命令中的路徑改成 `D:\git\yazi_work\yazi_intranet`，再替它建立 worktree。不要從非 Git 父目錄期待一次建立全部子 repo 的 worktree。
 
