@@ -38,6 +38,39 @@
 
 **名稱相近不代表隔離方式相同。** 對同一資料夾開兩個 Space，兩個 agent 修改的是同一份檔案；對同一 repo 建立兩個 Git worktree，才會有兩份工作目錄。Git worktree 仍不是安全沙箱。
 
+
+### 2.1 都在本機 Linux：Workspace 可以對應 Space 嗎？
+
+**若指「整理一個資料夾的終端機和 agents」，第一代 Workspace 可以對應第二代 Space。** 這是工作用途的對應，不是設定檔、儲存資料或命令的直接相容關係。
+
+```text
+第一代 herdr                         第二代 herdr-app
+Workspace：android-study            Space：android-study
+├── Claude 終端機                     ├── Claude 終端機
+├── Codex 終端機                      ├── Codex 終端機
+└── build 終端機                      └── build 終端機
+    cwd：/work/android-main               cwd：/work/android-main
+```
+
+兩者都能執行相同的公司 CLI 和 build command；普通 Workspace／Space 都不會複製 Android tree。若兩個 agents 指向同一個 source tree，它們會修改相同檔案。這項限制不因使用 Linux 或第二代而改變。[H5][H9][G1]
+
+| 本機 Linux 使用者會看到的差異 | 第一代 | 第二代 |
+| --- | --- | --- |
+| 畫面所在位置 | 既有終端機裡的 TUI | GPUI 桌面視窗；core 可單獨無桌面使用 |
+| 程序的持有者 | Herdr session server | 獨立的 herdr-core；app 是 viewer |
+| 開啟研究目錄 | `herdr workspace create --cwd /work/android-main --label android-study --focus` | `herdr-app do space.new --name android-study --folder /work/android-main` |
+| worktree 自訂 | CLI 有 path、base 和 worktree directory 設定 | 研究版本 shipped mod 固定 root，新 branch 從來源 HEAD 建立；自訂可先用 Git 建立 |
+| 介面擴充 | 第一代自己的設定與 plugin／API 流程 | layout 和 JavaScript mods；不是沿用第一代 plugin 套件的保證 |
+| 關閉畫面後程序繼續 | 第一代本來就有背景 server | app 視窗關閉後由 core 維持；不是第二代才新增的概念 |
+| 重開機後 agent 對話 | 第一代有符合條件的 integration native session resume；不等於原程序存活 | 研究版本 kept terminal 回到原目錄的新 shell，不能套用第一代的 agent resume 保證 |
+| 無桌面 Linux host | TUI 可在終端機使用 | app 需要圖形桌面與相容 Vulkan；只有 core 可無桌面執行 |
+
+原碼與隨附文件依據：[H1][H2][H3][H8][H9][H11][H12]。關閉畫面、關閉 pane、停止 server/core 和重開機是不同動作；不能把「detach 後程序還活著」理解成重開機仍保有同一個程序。第二代 README 明載關閉 pane/tab 會結束其中終端機；core crash 或 reboot 後可恢復的 panes 是新 shell，不是原程序。[H11]
+
+另外，第二代 core 依程序回報的 OSC 7501 狀態運作，不保證任意 CLI 都自動被辨識為 working／blocked；app 的 sidebar 顯示能力要配合 agent 的狀態回報。[H2][H11]
+
+因此，Android 本機案例的工作安排可以相同：一個 root 工作容器、數個 agent 和一個 build terminal。選用哪代仍需確認你的 worktree、terminal 操作、擴充套件及復原需求，不應將第二代視為第一代所有功能的完全替代。本文沒有實測兩代效能或穩定性。
+
 ## 3. 第二代案例一：直接開既有 Git repo
 
 需求：`D:\git\clinic_bookmarklet` 已是 Git repo，想讀程式或讓 agent 修改。
@@ -230,6 +263,24 @@ Android 第一代範例是在 Linux build host 執行 `herdr workspace create --
 
 討論作為需求和陷阱線索；本文的功能結論採用固定 commit 的實作，不把使用者需求、其他分支 prototype 或最新網站宣傳當成已下載版本的功能。
 
+
+### 10.1 網路使用者怎麼看：優點、成本與原碼對照
+
+查閱日期：2026-11-03。以下是具名作者的使用筆記、評測及 GitHub 討論，**不是使用者滿意度調查，也沒有找到可作為結論的兩代同條件 Linux benchmark**。不同時間、平台與版本的經驗分別列出；不把 macOS 個案推論成 Linux 必然重現。
+
+| 來源、日期與代別 | 使用者／作者看重或遇到的事 | 優點或成本如何理解 | 與原碼對齊及限制 |
+| --- | --- | --- | --- |
+| David Mytton，[Console 評測](https://console.dev/tools/herdr)，2026-06-11，第一代 TUI | 肯定既有終端機、鍵盤與滑鼠操作，以及 detach／reattach 工作方式；提醒 live server handoff 當時仍屬實驗性 | 若已熟悉終端機，第一代能保留既有工作習慣；handoff 與 detach 要分開看 | 第一代有 session server 與 client 分工，可支持 detach 的功能敘述；「好用」是評測者判斷，不是第二代較差的證據。handoff 的評價只代表當時，不能作為所有版本的狀態。[H1][H12] |
+| Nicolas Deville，[個人使用筆記](https://notes.nicolasdeville.com/apps/herdr/)，頁面討論 2026-08～09 的第一代版本 | 以終端機中的 agent 狀態、通知與 session 整理理解產品價值，也特別整理通知和設定的學習成本 | 多 agent 的收益主要是看出誰需要你，不能只以開多少 panes 衡量；新使用者仍需理解通知與設定 | 此文以 workspace、prefix keys 和第一代版本為背景；不能當成第二代 Space 或 core 的實測。功能依原碼可以查到，生產力提升仍是個人體驗。[H1][H9] |
+| scottames，[GitHub #553](https://github.com/herdrdev/herdr/discussions/553)，2026-06-10，第一代 | 喜歡 worktree 分組，但希望 bare repo 的 main checkout 成為可見 parent，避免多一層沒有實際工作的 container row | 自動分組有用，但 repo 磁碟結構不一定符合使用者想看的 UI 結構 | 需求不表示已實作；第二代實際 grouping 使用 common-dir、linked 與 main Space 判斷，應另外核對，不能只換 workspace 名稱就推定問題解決。[H7] |
+| sdemura 等，[GitHub #3310](https://github.com/herdrdev/herdr/discussions/3310)，2026-08-27 起，第一代需求 | 希望 worktree 與 repo 靠近，方便和 Claude/Codex 共用同一組 checkout；也有人偏好 sibling 路徑 | 集中管理與 repo-local layout 各有需求；路徑彈性會影響團隊流程 | 對第二代研究 snapshot 而言，root 在 mod 是常數；可手動 Git 建 checkout 再開 Space。貼文中的其他 agent config 繼承主張未在本研究驗證。[H6] |
+| bonanyan，[GitHub #5760](https://github.com/herdrdev/herdr/discussions/5760)，2026-11-02，談 layouts/mods 的桌面 app；貼文未列版本及 OS | 安裝 herdr-pets 後，切換 layout 就看不到它 | 第二代可自訂介面是彈性，也需要理解「安裝 mod」與「layout 是否放置它」是不同事情 | app layout 是 block/container tree，可包含 mod；切換後是否顯示取決於布局。這支持其架構原因，但未重現該第三方 mod 個案，也不把它判為 core runtime 故障。[H13] |
+| fidelisakilan，[GitHub #5762](https://github.com/herdrdev/herdr/discussions/5762)，2026-11-02，app 0.1.12／hc 0.1.17／macOS 27.0.1 | 原本在 Ghostty 設定好的捲動速度不適用 app，回看 Claude 輸出會捲過頭，希望有 app 專用調整 | 原生 app 有自己的 terminal UI；原終端機的細節設定不一定繼承，可能增加調整成本 | 第一代 source 有 `ui.mouse_scroll_lines`，第二代 snapshot 在自己的 `terminal.rs` 處理 scroll，settings 未提供等同欄位。貼文版本比本機 snapshot 新；不能據此宣稱最新版或 Linux 一定缺少設定／有相同體感。[H14] |
+
+這些資料支持的差別，是工作習慣、介面控制與路徑／擴充設定的取捨；它們不能證明第一代或第二代整體更快、更穩或更適合所有人。第二代官方 README 提到圖形桌面與 Vulkan 需求、core 的程序持續性及 mods 管理，但這些是供應方說明，不能充作獨立使用者好評。[H11]
+
+對目前 Android Linux 案例，可先用同一套 source root、相同 agent 命令與相同 build command 比較日常操作：哪個畫面容易找到等待中的 agent、捲動與快捷鍵是否順手、實際 worktree 路徑是否符合團隊需求。尚未進行這種對照測試，因此本文不給效能或穩定性排名。
+
 ## 11. 企業內網與本案例界線
 
 Herdr 第一代與第二代 app/core 都有原生 Rust 實作，不使用 Orca 的 Electron 執行方式；公司核准 Electron 並不代表 Herdr 原生執行檔已核准。API token 是否可用由已安裝的 agent CLI 與公司 endpoint 設定決定；Space／worktree 不提供模型服務。本文未驗證公司安裝、登入、計費、長時間 build 或真實 agent 費用。[H1][H2][H3]
@@ -250,3 +301,8 @@ Herdr 第一代與第二代 app/core 都有原生 Rust 實作，不使用 Orca �
 - [G1] [Git worktree 官方文件](https://git-scm.com/docs/git-worktree)。
 - [A1] [Android Repo 官方指令文件](https://source.android.com/docs/setup/reference/repo)。
 - [A2] [AOSP build 流程](https://source.android.com/docs/setup/start)。
+
+- [H11] [第二代 README：Linux 安裝條件、畫面與程序生命週期](https://github.com/herdrdev/herdr-app/blob/1581a587919dddd6f1efd5f78eb542c4b2b02cb5/README.md)。
+- [H12] [第一代 session-state 文件](https://github.com/herdrdev/herdr/blob/ee5bfb5041bb3e4a49d591c72308aae3c81ecdde/docs/next/website/src/content/docs/session-state.mdx)。
+- [H13] [第二代 layout tree 與 mod block](https://github.com/herdrdev/herdr-app/blob/1581a587919dddd6f1efd5f78eb542c4b2b02cb5/src/layout.rs)，mod content 與 `visible_blocks` 等實作。
+- [H14] [第一代 mouse_scroll_lines 設定](https://github.com/herdrdev/herdr/blob/ee5bfb5041bb3e4a49d591c72308aae3c81ecdde/src/config/model.rs#L961)，[第二代 terminal 捲動](https://github.com/herdrdev/herdr-app/blob/1581a587919dddd6f1efd5f78eb542c4b2b02cb5/src/terminal.rs#L788)，[第二代 settings](https://github.com/herdrdev/herdr-app/blob/1581a587919dddd6f1efd5f78eb542c4b2b02cb5/src/settings.rs)。
